@@ -20,3 +20,28 @@
 2024-04-11 05:13:32,968   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
 2024-04-11 05:13:33,088   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
 2024-04-11 05:13:33,123   INFO  ==> Done (loaded 391/391)
+2024-04-16 11:16:57,717   INFO  Loading Custom dataset.
+2024-04-16 11:16:57,718   INFO  Total samples for CUSTOM dataset: 0
+2024-04-16 11:17:00,536   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-16 11:17:00,668   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-16 11:17:00,695   INFO  ==> Done (loaded 391/391)
+2024-04-16 11:18:04,505   INFO  Loading Custom dataset.
+2024-04-16 11:18:04,506   INFO  Total samples for CUSTOM dataset: 0
+2024-04-16 11:18:06,876   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-16 11:18:07,009   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-16 11:18:07,035   INFO  ==> Done (loaded 391/391)
+2024-04-16 11:20:54,192   INFO  Loading Custom dataset.
+2024-04-16 11:20:54,194   INFO  Total samples for CUSTOM dataset: 0
+2024-04-16 11:20:56,665   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-16 11:20:56,806   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-16 11:20:56,836   INFO  ==> Done (loaded 391/391)
+2024-04-16 11:22:49,485   INFO  Loading Custom dataset.
+2024-04-16 11:22:49,486   INFO  Total samples for CUSTOM dataset: 0
+2024-04-16 11:22:51,868   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-16 11:22:52,001   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-16 11:22:52,029   INFO  ==> Done (loaded 391/391)
+2024-04-16 11:28:17,342   INFO  Loading Custom dataset.
+2024-04-16 11:28:17,343   INFO  Total samples for CUSTOM dataset: 0
+2024-04-16 11:28:19,827   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-16 11:28:20,800   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-16 11:28:20,827   INFO  ==> Done (loaded 391/391)
