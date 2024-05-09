@@ -123,3 +123,38 @@
 2024-04-16 13:36:25,489   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
 2024-04-16 13:36:25,856   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
 2024-04-16 13:36:26,195   INFO  ==> Done (loaded 391/391)
+2024-04-19 01:29:06,208   INFO  Loading Custom dataset.
+2024-04-19 01:29:06,210   INFO  Total samples for CUSTOM dataset: 0
+2024-04-19 01:29:09,871   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-19 01:29:11,083   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-19 01:29:11,145   INFO  ==> Done (loaded 391/391)
+2024-04-19 01:31:48,892   INFO  Loading Custom dataset.
+2024-04-19 01:31:48,894   INFO  Total samples for CUSTOM dataset: 0
+2024-04-19 01:31:51,705   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-19 01:31:51,928   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-19 01:31:51,964   INFO  ==> Done (loaded 391/391)
+2024-04-19 01:39:19,981   INFO  Loading Custom dataset.
+2024-04-19 01:39:19,983   INFO  Total samples for CUSTOM dataset: 0
+2024-04-19 01:39:22,691   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-19 01:39:22,908   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-19 01:39:22,946   INFO  ==> Done (loaded 391/391)
+2024-04-19 01:41:28,705   INFO  Loading Custom dataset.
+2024-04-19 01:41:28,706   INFO  Total samples for CUSTOM dataset: 0
+2024-04-19 01:41:31,432   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-19 01:41:31,704   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-19 01:41:31,805   INFO  ==> Done (loaded 391/391)
+2024-04-19 01:42:59,976   INFO  Loading Custom dataset.
+2024-04-19 01:42:59,977   INFO  Total samples for CUSTOM dataset: 0
+2024-04-19 01:43:03,061   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-19 01:43:03,359   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-19 01:43:03,499   INFO  ==> Done (loaded 391/391)
+2024-04-19 01:50:56,134   INFO  Loading Custom dataset.
+2024-04-19 01:50:56,135   INFO  Total samples for CUSTOM dataset: 0
+2024-04-19 01:50:58,726   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-19 01:50:58,867   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-19 01:50:59,116   INFO  ==> Done (loaded 391/391)
+2024-04-19 01:52:35,061   INFO  Loading Custom dataset.
+2024-04-19 01:52:35,063   INFO  Total samples for CUSTOM dataset: 0
+2024-04-19 01:52:37,319   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-04-19 01:52:37,470   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-04-19 01:52:37,514   INFO  ==> Done (loaded 391/391)
