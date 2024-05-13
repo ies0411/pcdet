@@ -127,7 +127,6 @@ class TrackerDataset(DatasetTemplate):
             if index < reduced_index:
                 frame_idx = idx
                 break
-        frame_idx = 0
         P2, V2C = read_calib(
             os.path.join(self.args.calib_dir, f"{str(frame_idx).zfill(4)}.txt")
         )
@@ -168,7 +167,11 @@ class TrackerDataset(DatasetTemplate):
             # points = np.load(self.sample_file_list[index])
         else:
             raise NotImplementedError
-        input_dict = {"points": points, "frame_id": index}
+        input_dict = {
+            "points": points,
+            "frame_id": index - frame_idx,
+            "scene": frame_idx,
+        }
         data_dict = self.prepare_data(data_dict=input_dict)
         return data_dict
 
@@ -266,14 +269,10 @@ def main():
     frame_idx = 0  # TODO : change to frame_id
     P2, V2C = read_calib(os.path.join(args.calib_dir, f"{str(frame_idx).zfill(4)}.txt"))
     for class_name, racking_results_list in tracking_results_dict.items():
-        for frame_idx, tracking_results in racking_results_list.items():
-            with open(
-                os.path.join(
-                    args.tracking_output_dir,
-                    f"result_{detection_cfg.CLASS_NAMES[int(class_name) - 1]}_{str(frame_idx)}.txt",
-                ),
-                "w",
-            ) as f:
+        with open(
+            os.path.join(args.tracking_output_dir, f"result_{class_name}.txt"), "w"
+        ) as f:
+            for frame_idx, tracking_results in racking_results_list.items():
                 tracking_results = tracking_results[0]
                 if len(tracking_results) == 0:
                     continue
@@ -283,7 +282,7 @@ def main():
                     box[:3] = tracking_result[3:6]
                     box[3:6] = tracking_result[:3]
                     box[2] -= box[5] / 2
-                    # box[:, 6] = -box[:, 6] - np.pi / 2
+                    box[6] = -box[6] - np.pi / 2
                     box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
                     box2d = bb3d_2_bb2d(box, P2)
                     f.write(

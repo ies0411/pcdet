@@ -2,6 +2,7 @@ import copy
 
 import numpy as np
 from numba import jit
+from collections import OrderedDict
 
 from .box import Box3D
 from .kalman_filter import KF, UKF, get_bbox_distance
@@ -11,10 +12,13 @@ from .matching import data_association
 @jit(nopython=True, cache=True)
 def _within_range(theta):
     # make sure the orientation is within a proper range
-    if theta >= np.pi:
-        theta -= np.pi * 2  # make the theta stillf in the range
-    if theta < -np.pi:
-        theta += np.pi * 2
+    while True:
+        if theta >= np.pi:
+            theta -= np.pi * 2  # make the theta stillf in the range
+        if theta < -np.pi:
+            theta += np.pi * 2
+        if theta < np.pi or theta >= -np.pi:
+            break
 
     return theta
 
@@ -47,6 +51,9 @@ class Spb3DMOT(object):
         self.trackers = []
         self.frame_count = 0
         self.ID_count = [ID_init]
+        self.ID_MAP = OrderedDict()
+        self.real_ID = ID_init
+
         self.id_now_output = []
 
         # config
@@ -96,9 +103,13 @@ class Spb3DMOT(object):
             det_tmp = Box3D.pcdet2bbox_raw(det)
             dets_new.append(det_tmp)
 
-        # dets_high = [det for det in dets if det[-2] > det[-1]]
-        # dets_low = [det for det in dets if det[-2] < det[-1] and det[-2] > 0.1]
-        return dets_new
+        dets_high = [Box3D.pcdet2bbox_raw(det) for det in dets if det[-2] > det[-1]]
+        dets_low = [
+            Box3D.pcdet2bbox_raw(det)
+            for det in dets
+            if det[-2] < det[-1] and det[-2] > 0.1
+        ]
+        return dets_new, dets_high, dets_low
 
     def orientation_correction(self, theta_pre, theta_obs):
         # update orientation in propagated tracks and detected boxes so that they are within 90 degree
@@ -191,14 +202,20 @@ class Spb3DMOT(object):
             if (trk.confidence >= trk.threshold) and (
                 ((trk.hits is True) or (self.frame_count == 1))
             ):
+                if self.ID_MAP.get(trk.id, None) is not None:
+                    id = self.ID_MAP[trk.id]
+
+                else:
+                    id = self.ID_MAP[trk.id] = self.real_ID
+                    # print(f"id : {id}")
+                    self.real_ID += 1
                 results.append(
-                    np.concatenate((d, [trk.confidence], [trk.id])).reshape(1, -1)
+                    np.concatenate((d, [trk.confidence], [id])).reshape(1, -1)
                 )
             num_trks -= 1
 
             if trk.confidence <= self.death_threshold:
                 self.trackers.pop(num_trks)
-
         return results
 
     def process_affi(self, affi, matched, unmatched_dets, new_id_list):
@@ -301,9 +318,8 @@ class Spb3DMOT(object):
         # recall the last frames of outputs for computing ID correspondences during affinity processing
         self.id_past_output = copy.copy(self.id_now_output)
         self.id_past = [trk.id for trk in self.trackers]
-
         # process detection format
-        dets = self.process_dets(dets)
+        dets, dets_high, dets_low = self.process_dets(dets)
 
         # tracks propagation based on velocity
         trks = self.prediction()
