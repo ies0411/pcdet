@@ -19,6 +19,7 @@ from pcdet.models import build_network, load_data_to_gpu
 from pcdet.utils import common_utils
 from tracking_modules.model import Spb3DMOT
 from tracking_modules.utils import Config
+from tracking_modules.nms import nms
 from utils import read_calib, bb3d_2_bb2d, velo_to_cam, vel_to_cam_pose
 from torch.utils.data import Dataset, DataLoader
 
@@ -245,9 +246,13 @@ def main():
             detection_results_dict = _detection_postprocessing(
                 pred_dicts, len(detection_cfg.CLASS_NAMES)
             )
+            # nms_boxes = nms(boxes) if len(boxes) != 0 else []
 
             # TODO : nms
             for label, pred_bboxes in detection_results_dict.items():
+                pred_bboxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
+                # nms(pred_bboxes)
+                # nms_boxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
                 id_max = 0
                 tracker = tracker_dict[detection_cfg.CLASS_NAMES[int(label) - 1]]
                 tracking_result, _ = tracker.track(pred_bboxes)
@@ -276,7 +281,6 @@ def main():
                 tracking_results = tracking_results[0]
                 if len(tracking_results) == 0:
                     continue
-
                 for tracking_result in tracking_results:
                     box = copy.deepcopy(tracking_result)
                     box[:3] = tracking_result[3:6]

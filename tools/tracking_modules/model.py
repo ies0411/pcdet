@@ -207,7 +207,6 @@ class Spb3DMOT(object):
 
                 else:
                     id = self.ID_MAP[trk.id] = self.real_ID
-                    # print(f"id : {id}")
                     self.real_ID += 1
                 results.append(
                     np.concatenate((d, [trk.confidence], [id])).reshape(1, -1)
