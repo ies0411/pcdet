@@ -265,9 +265,15 @@ def main():
 
     frame_idx = 0  # TODO : change to frame_id
     P2, V2C = read_calib(os.path.join(args.calib_dir, f"{str(frame_idx).zfill(4)}.txt"))
-    with open(os.path.join(args.tracking_output_dir, "result.txt"), "w") as f:
-        for class_name, racking_results_list in tracking_results_dict.items():
-            for frame_idx, tracking_results in racking_results_list.items():
+    for class_name, racking_results_list in tracking_results_dict.items():
+        for frame_idx, tracking_results in racking_results_list.items():
+            with open(
+                os.path.join(
+                    args.tracking_output_dir,
+                    f"result_{detection_cfg.CLASS_NAMES[int(class_name) - 1]}_{str(frame_idx)}.txt",
+                ),
+                "w",
+            ) as f:
                 tracking_results = tracking_results[0]
                 if len(tracking_results) == 0:
                     continue
