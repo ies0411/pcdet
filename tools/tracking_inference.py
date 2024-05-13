@@ -231,7 +231,7 @@ def main():
     for class_name in detection_cfg.CLASS_NAMES:
         tracker_dict[class_name] = Spb3DMOT(ID_init=ID_start_dict.get(class_name))
     for idx in range(len(detection_cfg.CLASS_NAMES)):
-        tracking_results_dict.setdefault(str(int(idx) + 1), [])
+        tracking_results_dict.setdefault(str(int(idx) + 1), {})
     with torch.no_grad():
         for idx, data_dict in enumerate(tracking_dataset):
             if data_dict == None:
@@ -242,6 +242,7 @@ def main():
             detection_results_dict = _detection_postprocessing(
                 pred_dicts, len(detection_cfg.CLASS_NAMES)
             )
+
             # TODO : nms
             for label, pred_bboxes in detection_results_dict.items():
                 id_max = 0
@@ -251,7 +252,13 @@ def main():
                 if len(tracking_result) != 0:
                     id_max = max(id_max, tracking_result[0][-1])
                 ID_start_dict[detection_cfg.CLASS_NAMES[int(label) - 1]] = id_max + 1
-                tracking_results_dict[label].append(tracking_result)
+                tracking_results_dict[label].setdefault(
+                    str(data_dict["frame_id"][0]), []
+                )
+                tracking_results_dict[label][str(data_dict["frame_id"][0])].append(
+                    tracking_result
+                )
+
     logger.info(f"tracking time : { time.time()-tracking_time}")
     logger.info("========= logging.. =========")
     Path(args.tracking_output_dir).mkdir(parents=True, exist_ok=True)
@@ -259,21 +266,23 @@ def main():
     frame_idx = 0  # TODO : change to frame_id
     P2, V2C = read_calib(os.path.join(args.calib_dir, f"{str(frame_idx).zfill(4)}.txt"))
     with open(os.path.join(args.tracking_output_dir, "result.txt"), "w") as f:
-        for class_name, tracking_results in tracking_results_dict.items():
-            for frame_idx, tracking_result in enumerate(tracking_results):
-                if len(tracking_result) == 0:
+        for class_name, racking_results_list in tracking_results_dict.items():
+            for frame_idx, tracking_results in racking_results_list.items():
+                tracking_results = tracking_results[0]
+                if len(tracking_results) == 0:
                     continue
-                tracking_result = tracking_result[0]
-                box = copy.deepcopy(tracking_result)
-                box[:3] = tracking_result[3:6]
-                box[3:6] = tracking_result[:3]
-                box[2] -= box[5] / 2
-                # box[:, 6] = -box[:, 6] - np.pi / 2
-                box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
-                box2d = bb3d_2_bb2d(box, P2)
-                f.write(
-                    f"{str(frame_idx)} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(class_name) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
-                )
+
+                for tracking_result in tracking_results:
+                    box = copy.deepcopy(tracking_result)
+                    box[:3] = tracking_result[3:6]
+                    box[3:6] = tracking_result[:3]
+                    box[2] -= box[5] / 2
+                    # box[:, 6] = -box[:, 6] - np.pi / 2
+                    box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
+                    box2d = bb3d_2_bb2d(box, P2)
+                    f.write(
+                        f"{str(frame_idx)} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(class_name) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                    )
     logger.info("========= Finish =========")
 
 
