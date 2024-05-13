@@ -250,7 +250,9 @@ def main():
 
             # TODO : nms
             for label, pred_bboxes in detection_results_dict.items():
+                # print(pred_bboxes)
                 pred_bboxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
+                # [[5.936120510101318, -1.7685508728027344, -0.6999893188476562, 0.9533934593200684, 0.7684471607208252, 1.7711583375930786, -0.18886850774288177, 0.5280547142028809, 0.5]]
                 # nms(pred_bboxes)
                 # nms_boxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
                 id_max = 0

@@ -52,7 +52,7 @@ def nms(
     for idx, bbox in enumerate(boxes_probability_sorted):
         if bbox[-1] > 0:
             bbox_list = bbox.tolist()
-            bbox_list.append(0.5)
+            bbox_list.append(0.6)
             selected_boxes.append(bbox_list)
             for idx_2, other_box in enumerate(boxes_probability_sorted):
                 if (
