@@ -161,7 +161,6 @@ class TrackerDataset(DatasetTemplate):
                 np.logical_and(x >= 0, x < max_col), np.logical_and(y >= 0, y < max_row)
             )
             points = lidar_copy[mask]
-            # points = read_velodyne(velo_path,self.P2,self.V2C)
 
         elif self.ext == ".npy":
             pass
@@ -205,13 +204,11 @@ def main():
         class_names=detection_cfg.CLASS_NAMES,
         training=False,
         root_path=None,
-        # Path(args.data_path),
         ext=args.ext,
         logger=logger,
         args=args,
     )
     logger.info(f"Total number of samples: \t{len(tracking_dataset)}")
-
     # dataloader = DataLoader(tracking_dataset, batch_size=1, shuffle=False)
 
     model = build_network(
@@ -299,7 +296,8 @@ def main():
                             f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
                         )
 
-    # logger.info(f"tracking time : { time.time()-tracking_time}")
+    logger.info(f"tracking time : { time.time()-tracking_time}")
+    logger.info("========= Finish =========")
     # logger.info("========= logging.. =========")
 
     ########
@@ -324,7 +322,6 @@ def main():
     #                 f.write(
     #                     f"{str(frame_idx)} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(class_name) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
     #                 )
-    logger.info("========= Finish =========")
 
 
 # https://github.com/pratikac/kitti/blob/master/readme.tracking.txt
