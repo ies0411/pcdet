@@ -23,6 +23,10 @@ from tracking_modules.nms import nms
 from utils import read_calib, bb3d_2_bb2d, velo_to_cam, vel_to_cam_pose
 from torch.utils.data import Dataset, DataLoader
 
+# https://github.com/hailanyi/3D-Multi-Object-Tracker/tree/master
+# https://github.com/JonathonLuiten/TrackEval?tab=readme-ov-file
+# https://github.com/hailanyi/3D-Detection-Tracking-Viewer
+
 
 def parse_config():
     parser = argparse.ArgumentParser(description="arg parser")
@@ -35,7 +39,7 @@ def parse_config():
     parser.add_argument(
         "--data_path",
         type=str,
-        default="../sample/lidar",
+        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/",
         help="specify the point cloud data file or directory",
     )
     # ../sample/lidar
@@ -46,6 +50,7 @@ def parse_config():
         type=str,
         help="specify the pretrained model",
     )
+    # "/mnt/nas2/users/eslim/tracking/detector_2/ckpt/checkpoint_epoch_80.pth"
     parser.add_argument(
         "--ext",
         type=str,
@@ -67,7 +72,7 @@ def parse_config():
     # "/mnt/nas3/Data/kitti-processed/object_tracking/training/calib"
     parser.add_argument(
         "--calib_dir",
-        default="../sample/calib/",
+        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/calib",
         type=str,
     )
 
@@ -193,7 +198,7 @@ def _detection_postprocessing(pred_dicts, num_objects):
         label = str(pred_dicts[0]["pred_labels"][idx].item())
         pred_bbox = pred_bbox.tolist()
         pred_bbox.append(pred_dicts[0]["pred_scores"][idx].tolist())
-        pred_bbox.append(0.6)
+        pred_bbox.append(0.65)
         tracking_info_data[label].append(pred_bbox)
     return tracking_info_data
 
@@ -269,6 +274,9 @@ def main():
 
             # TODO : nms
             for label, pred_bboxes in detection_results_dict.items():
+                # if detection_cfg.CLASS_NAMES[int(label) - 1] == "Cyclist":
+                    # continue
+
                 pred_bboxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
                 frame_idx = str(data_dict["frame_id"][0])
                 tracker = tracker_dict[detection_cfg.CLASS_NAMES[int(label) - 1]]
