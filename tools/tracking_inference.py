@@ -35,7 +35,7 @@ def parse_config():
     parser.add_argument(
         "--data_path",
         type=str,
-        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/",
+        default="../sample/lidar",
         help="specify the point cloud data file or directory",
     )
     # ../sample/lidar
@@ -67,7 +67,7 @@ def parse_config():
     # "/mnt/nas3/Data/kitti-processed/object_tracking/training/calib"
     parser.add_argument(
         "--calib_dir",
-        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/calib",
+        default="../sample/calib/",
         type=str,
     )
 
@@ -230,11 +230,12 @@ def main():
     for class_name in detection_cfg.CLASS_NAMES:
         ID_start_dict.setdefault(class_name, 1)
     logger.info(f"ID_start_dict : {ID_start_dict}")
-    id_max = 0
+    # id_max = {}
     tracking_results_dict = {}
     tracker_dict = {}
     for class_name in detection_cfg.CLASS_NAMES:
         tracker_dict[class_name] = Spb3DMOT(ID_init=ID_start_dict.get(class_name))
+        # id_max[class_name] = 0
     for idx in range(len(detection_cfg.CLASS_NAMES)):
         tracking_results_dict.setdefault(str(int(idx) + 1), {})
     for class_name in detection_cfg.CLASS_NAMES:
@@ -249,13 +250,14 @@ def main():
 
             if scene != str(int(data_dict["scene"])).zfill(4):
                 ID_start_dict = {}
-                for class_name in detection_cfg.CLASS_NAMES:
-                    ID_start_dict.setdefault(class_name, 1)
                 tracker_dict = {}
                 for class_name in detection_cfg.CLASS_NAMES:
+                    ID_start_dict.setdefault(class_name, 1)
                     tracker_dict[class_name] = Spb3DMOT(
                         ID_init=ID_start_dict.get(class_name)
                     )
+                    # id_max[class_name] = 0
+
                 scene = str(int(data_dict["scene"])).zfill(4)
 
             data_dict = tracking_dataset.collate_batch([data_dict])
@@ -269,51 +271,59 @@ def main():
             for label, pred_bboxes in detection_results_dict.items():
                 pred_bboxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
                 frame_idx = str(data_dict["frame_id"][0])
-                id_max = 0
                 tracker = tracker_dict[detection_cfg.CLASS_NAMES[int(label) - 1]]
                 tracking_result, _ = tracker.track(pred_bboxes)
                 tracking_result = tracking_result[0].tolist()
-                if len(tracking_result) != 0:
-                    id_max = max(id_max, tracking_result[0][-1])
-                ID_start_dict[detection_cfg.CLASS_NAMES[int(label) - 1]] = id_max + 1
+                # print(f"tracking_result : {tracking_result}")
+                # if len(tracking_result) != 0:
+                # id_max[detection_cfg.CLASS_NAMES[int(label) - 1]] = max(
+                #     id_max[detection_cfg.CLASS_NAMES[int(label) - 1]],
+                #     tracking_result[0][-1],
+                # )
+                # ID_start_dict[detection_cfg.CLASS_NAMES[int(label) - 1]] = (
+                #     id_max[detection_cfg.CLASS_NAMES[int(label) - 1]] + 1
+                # )
                 tracking_results_dict[label].setdefault(frame_idx, [])
                 tracking_results_dict[label][frame_idx].append(tracking_result)
                 P2, V2C = read_calib(os.path.join(args.calib_dir, f"{scene}.txt"))
 
                 if len(tracking_result) == 0:
                     continue
-                tracking_result = tracking_result[0]
-                save_path = os.path.join(
-                    args.tracking_output_dir,
-                    detection_cfg.CLASS_NAMES[int(label) - 1],
-                    f"{scene}.txt",
-                )
-                if os.path.exists(save_path):
-                    with open(save_path, "a") as f:
+                tracking_results = tracking_result
+                # print(f"tracking_result : {tracking_result}")
+                # tracking_result = tracking_result[0]
+                for tracking_result in tracking_results:
+                    save_path = os.path.join(
+                        args.tracking_output_dir,
+                        detection_cfg.CLASS_NAMES[int(label) - 1],
+                        f"{scene}.txt",
+                    )
+                    if os.path.exists(save_path):
+                        with open(save_path, "a") as f:
+                            box = copy.deepcopy(tracking_result)
+                            box[:3] = tracking_result[3:6]
+                            box[3:6] = tracking_result[:3]
+                            box[2] -= box[5] / 2
+                            box[6] = -box[6] - np.pi / 2
+                            box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
+                            box2d = bb3d_2_bb2d(box, P2)
+                            f.write(
+                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                            )
+                    else:
+                        with open(save_path, "w") as f:
+                            print(f"open {save_path}!!")
+                            box = copy.deepcopy(tracking_result)
+                            box[:3] = tracking_result[3:6]
+                            box[3:6] = tracking_result[:3]
+                            box[2] -= box[5] / 2
+                            box[6] = -box[6] - np.pi / 2
+                            box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
+                            box2d = bb3d_2_bb2d(box, P2)
 
-                        box = copy.deepcopy(tracking_result)
-                        box[:3] = tracking_result[3:6]
-                        box[3:6] = tracking_result[:3]
-                        box[2] -= box[5] / 2
-                        box[6] = -box[6] - np.pi / 2
-                        box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
-                        box2d = bb3d_2_bb2d(box, P2)
-                        f.write(
-                            f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
-                        )
-                else:
-                    with open(save_path, "w") as f:
-                        print(f"open {save_path}!!")
-                        box = copy.deepcopy(tracking_result)
-                        box[:3] = tracking_result[3:6]
-                        box[3:6] = tracking_result[:3]
-                        box[2] -= box[5] / 2
-                        box[6] = -box[6] - np.pi / 2
-                        box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
-                        box2d = bb3d_2_bb2d(box, P2)
-                        f.write(
-                            f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
-                        )
+                            f.write(
+                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                            )
 
     logger.info(f"tracking time : { time.time()-tracking_time}")
     logger.info("========= Finish =========")
