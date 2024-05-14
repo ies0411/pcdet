@@ -3,9 +3,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn.init import kaiming_normal_
-from ..model_utils import model_nms_utils
-from ..model_utils import centernet_utils
-from ...utils import loss_utils
+
+from pcdet.utils import loss_utils
+from pcdet.models.model_utils import model_nms_utils, centernet_utils
 from functools import partial
 
 
@@ -291,16 +291,20 @@ class CenterHead(nn.Module):
                 else:
                     gt_boxes_single_head = torch.cat(gt_boxes_single_head, dim=0)
 
-                heatmap, ret_boxes, inds, mask, ret_boxes_src = (
-                    self.assign_target_of_single_head(
-                        num_classes=len(cur_class_names),
-                        gt_boxes=gt_boxes_single_head.cpu(),
-                        feature_map_size=feature_map_size,
-                        feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
-                        num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
-                        gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
-                        min_radius=target_assigner_cfg.MIN_RADIUS,
-                    )
+                (
+                    heatmap,
+                    ret_boxes,
+                    inds,
+                    mask,
+                    ret_boxes_src,
+                ) = self.assign_target_of_single_head(
+                    num_classes=len(cur_class_names),
+                    gt_boxes=gt_boxes_single_head.cpu(),
+                    feature_map_size=feature_map_size,
+                    feature_map_stride=target_assigner_cfg.FEATURE_MAP_STRIDE,
+                    num_max_objs=target_assigner_cfg.NUM_MAX_OBJS,
+                    gaussian_overlap=target_assigner_cfg.GAUSSIAN_OVERLAP,
+                    min_radius=target_assigner_cfg.MIN_RADIUS,
                 )
                 heatmap_list.append(heatmap.to(gt_boxes_single_head.device))
                 target_boxes_list.append(ret_boxes.to(gt_boxes_single_head.device))
@@ -363,7 +367,6 @@ class CenterHead(nn.Module):
             tb_dict["loc_loss_head_%d" % idx] = loc_loss.item()
 
             if "iou" in pred_dict or self.model_cfg.get("IOU_REG_LOSS", False):
-
                 batch_box_preds = centernet_utils.decode_bbox_from_pred_dicts(
                     pred_dict=pred_dict,
                     point_cloud_range=self.point_cloud_range,
@@ -458,7 +461,6 @@ class CenterHead(nn.Module):
                 score_thresh=post_process_cfg.SCORE_THRESH,
                 post_center_limit_range=post_center_limit_range,
             )
-
             for k, final_dict in enumerate(final_pred_dicts):
                 final_dict["pred_labels"] = self.class_id_mapping_each_head[idx][
                     final_dict["pred_labels"].long()
