@@ -264,54 +264,40 @@ def main():
                 ID_start_dict[detection_cfg.CLASS_NAMES[int(label) - 1]] = id_max + 1
                 tracking_results_dict[label].setdefault(frame_idx, [])
                 tracking_results_dict[label][frame_idx].append(tracking_result)
-                # P2, V2C = read_calib(
-                #     os.path.join(args.calib_dir, f"{str(data_dict).zfill(4)}.txt")
-                # )
-                # print(f"scene : {scene}")
-                # print(f"tracking_result : {tracking_result}")
                 P2, V2C = read_calib(os.path.join(args.calib_dir, f"{scene}.txt"))
+
                 if len(tracking_result) == 0:
                     continue
                 tracking_result = tracking_result[0]
-            try:
-                with open(
-                    os.path.join(
-                        args.tracking_output_dir,
-                        detection_cfg.CLASS_NAMES[int(label) - 1],
-                        f"{str(data_dict['scene']).zfill(4)}.txt",
-                    ),
-                    "w",
-                ) as f:
-
-                    box = copy.deepcopy(tracking_result)
-                    box[:3] = tracking_result[3:6]
-                    box[3:6] = tracking_result[:3]
-                    box[2] -= box[5] / 2
-                    box[6] = -box[6] - np.pi / 2
-                    box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
-                    box2d = bb3d_2_bb2d(box, P2)
-                    f.write(
-                        f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
-                    )
-            except FileNotFoundError:
-                with open(
-                    os.path.join(
-                        args.tracking_output_dir,
-                        detection_cfg.CLASS_NAMES[int(label) - 1],
-                        f"{str(data_dict['scene']).zfill(4)}.txt",
-                    ),
-                    "w",
-                ) as f:
-                    box = copy.deepcopy(tracking_result)
-                    box[:3] = tracking_result[3:6]
-                    box[3:6] = tracking_result[:3]
-                    box[2] -= box[5] / 2
-                    box[6] = -box[6] - np.pi / 2
-                    box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
-                    box2d = bb3d_2_bb2d(box, P2)
-                    f.write(
-                        f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
-                    )
+                save_path = os.path.join(
+                    args.tracking_output_dir,
+                    detection_cfg.CLASS_NAMES[int(label) - 1],
+                    f"{scene}.txt",
+                )
+                if os.path.exists(save_path):
+                    with open(save_path, "a") as f:
+                        box = copy.deepcopy(tracking_result)
+                        box[:3] = tracking_result[3:6]
+                        box[3:6] = tracking_result[:3]
+                        box[2] -= box[5] / 2
+                        box[6] = -box[6] - np.pi / 2
+                        box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
+                        box2d = bb3d_2_bb2d(box, P2)
+                        f.write(
+                            f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                        )
+                else:
+                    with open(save_path, "w") as f:
+                        box = copy.deepcopy(tracking_result)
+                        box[:3] = tracking_result[3:6]
+                        box[3:6] = tracking_result[:3]
+                        box[2] -= box[5] / 2
+                        box[6] = -box[6] - np.pi / 2
+                        box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
+                        box2d = bb3d_2_bb2d(box, P2)
+                        f.write(
+                            f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                        )
 
     # logger.info(f"tracking time : { time.time()-tracking_time}")
     # logger.info("========= logging.. =========")
