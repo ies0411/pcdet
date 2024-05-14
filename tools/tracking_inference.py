@@ -35,9 +35,10 @@ def parse_config():
     parser.add_argument(
         "--data_path",
         type=str,
-        default="../sample/lidar",
+        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/",
         help="specify the point cloud data file or directory",
     )
+    # ../sample/lidar
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
@@ -62,9 +63,11 @@ def parse_config():
         default="./tracking_result/",
         type=str,
     )
+    # ../sample/calib/
+    # "/mnt/nas3/Data/kitti-processed/object_tracking/training/calib"
     parser.add_argument(
         "--calib_dir",
-        default="../sample/calib/",
+        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/calib",
         type=str,
     )
 
@@ -273,6 +276,7 @@ def main():
                 )
                 if os.path.exists(save_path):
                     with open(save_path, "a") as f:
+
                         box = copy.deepcopy(tracking_result)
                         box[:3] = tracking_result[3:6]
                         box[3:6] = tracking_result[:3]
@@ -285,6 +289,7 @@ def main():
                         )
                 else:
                     with open(save_path, "w") as f:
+                        print(f"open {save_path}!!")
                         box = copy.deepcopy(tracking_result)
                         box[:3] = tracking_result[3:6]
                         box[3:6] = tracking_result[:3]
