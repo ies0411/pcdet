@@ -93,8 +93,11 @@ MODEL:
             }
 
         POST_PROCESSING:
-            SCORE_THRESH: 0.1
-            POST_CENTER_LIMIT_RANGE: [-80, -80, -10.0, 80, 80, 10.0]
+            SCORE_THRESH: 0.01
+            # POST_CENTER_LIMIT_RANGE: [-80, -80, -10.0, 80, 80, 10.0]
+            POST_CENTER_LIMIT_RANGE: [ 0, -75.2, -4, 75.2, 75.2, 2 ]
+            # POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+
             MAX_OBJ_PER_SAMPLE: 500
 
             USE_IOU_TO_RECTIFY_SCORE: True
@@ -108,7 +111,6 @@ MODEL:
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
-
         SCORE_THRESH: 0.1
         OUTPUT_RAW_SCORE: False
 
