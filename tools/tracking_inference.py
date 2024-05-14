@@ -124,12 +124,14 @@ class TrackerDataset(DatasetTemplate):
 
     def __getitem__(self, index):
         reduced_index = 0
+        pre_index = 0
         if self.total_num == index:
             return None
         for idx in range(len(self.num_file_list)):
             reduced_index += self.num_file_list[idx]
             if index < reduced_index:
                 frame_idx = idx
+                pre_index = self.num_file_list[idx - 1] if idx != 0 else pre_index
                 break
         P2, V2C = read_calib(
             os.path.join(self.args.calib_dir, f"{str(frame_idx).zfill(4)}.txt")
@@ -172,7 +174,7 @@ class TrackerDataset(DatasetTemplate):
             raise NotImplementedError
         input_dict = {
             "points": points,
-            "frame_id": index - frame_idx,
+            "frame_id": index - pre_index,
             "scene": frame_idx,
         }
         data_dict = self.prepare_data(data_dict=input_dict)
@@ -191,7 +193,7 @@ def _detection_postprocessing(pred_dicts, num_objects):
         label = str(pred_dicts[0]["pred_labels"][idx].item())
         pred_bbox = pred_bbox.tolist()
         pred_bbox.append(pred_dicts[0]["pred_scores"][idx].tolist())
-        pred_bbox.append(0.5)
+        pred_bbox.append(0.6)
         tracking_info_data[label].append(pred_bbox)
     return tracking_info_data
 
@@ -239,11 +241,23 @@ def main():
         Path(os.path.join(args.tracking_output_dir, class_name)).mkdir(
             parents=True, exist_ok=True
         )
+    scene = str(0).zfill(4)
     with torch.no_grad():
         for idx, data_dict in enumerate(tracking_dataset):
             if data_dict == None:
                 break
-            scene = str(int(data_dict["scene"])).zfill(4)
+
+            if scene != str(int(data_dict["scene"])).zfill(4):
+                ID_start_dict = {}
+                for class_name in detection_cfg.CLASS_NAMES:
+                    ID_start_dict.setdefault(class_name, 1)
+                tracker_dict = {}
+                for class_name in detection_cfg.CLASS_NAMES:
+                    tracker_dict[class_name] = Spb3DMOT(
+                        ID_init=ID_start_dict.get(class_name)
+                    )
+                scene = str(int(data_dict["scene"])).zfill(4)
+
             data_dict = tracking_dataset.collate_batch([data_dict])
             load_data_to_gpu(data_dict)
             pred_dicts, _ = model.forward(data_dict)
