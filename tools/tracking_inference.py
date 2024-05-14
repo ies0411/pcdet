@@ -185,7 +185,6 @@ def _detection_postprocessing(pred_dicts, num_objects):
     tracking_info_data = {}
     for idx in range(num_objects):
         tracking_info_data.setdefault(str(idx + 1), [])
-    # print(f"pred_dicts: {pred_dicts}")
     for idx, pred_bbox in enumerate(pred_dicts[0]["pred_boxes"]):
         label = str(pred_dicts[0]["pred_labels"][idx].item())
         pred_bbox = pred_bbox.tolist()
@@ -292,7 +291,7 @@ def main():
                     box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
                     box2d = bb3d_2_bb2d(box, P2)
                     f.write(
-                        f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(class_name) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                        f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
                     )
             except FileNotFoundError:
                 with open(
@@ -311,7 +310,7 @@ def main():
                     box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
                     box2d = bb3d_2_bb2d(box, P2)
                     f.write(
-                        f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(class_name) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                        f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
                     )
 
     # logger.info(f"tracking time : { time.time()-tracking_time}")
