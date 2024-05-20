@@ -21,12 +21,14 @@ from pcdet.utils import common_utils
 from tracking_modules.model import Spb3DMOT
 from tracking_modules.utils import Config
 from tracking_modules.nms import nms
-import tracking_modules.evaluation.mailpy
+
+# import tracking_modules.evaluation.mailpy as mailpy
 
 
-from utils import read_calib, bb3d_2_bb2d, velo_to_cam, vel_to_cam_pose, copy_files
+from utils import read_calib, bb3d_2_bb2d, velo_to_cam, vel_to_cam_pose
 from torch.utils.data import Dataset, DataLoader
-from tracking_modules.evaluation.evaluate_tracking import evaluate
+
+# from tracking_modules.evaluation.evaluate_tracking import evaluate
 
 # https://github.com/hailanyi/3D-Multi-Object-Tracker/tree/master
 # https://github.com/JonathonLuiten/TrackEval?tab=readme-ov-file
@@ -51,7 +53,7 @@ def parse_config():
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/checkpoint_epoch_6.pth",
+        default="/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/checkpoint_epoch_9.pth",
         type=str,
         help="specify the pretrained model",
     )
@@ -331,7 +333,7 @@ def main():
                             box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
                             box2d = bb3d_2_bb2d(box, P2)
                             f.write(
-                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]:.4f} {box2d[0][1]:.4f} {box2d[0][2]:.4f} {box2d[0][3]:.4f} {box[3]:.4f} {box[4]:.4f} {box[5]:.4f} {box[0]:.4f} {box[1]:.4f} {box[2]:.4f} {box[6]:.4f} \n"
                             )
                     else:
                         with open(save_path, "w") as f:
@@ -345,21 +347,21 @@ def main():
                             box2d = bb3d_2_bb2d(box, P2)
 
                             f.write(
-                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
+                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]:.4f} {box2d[0][1]:.4f} {box2d[0][2]:.4f} {box2d[0][3]:.4f} {box[3]:.4f} {box[4]:.4f} {box[5]:.4f} {box[0]:.4f} {box[1]:.4f} {box[2]:.4f} {box[6]:.4f} \n"
                             )
 
     logger.info(f"tracking time : { time.time()-tracking_time}")
     logger.info("=========Tracking Finish =========")
 
     # eval
-    if args.eval is True:
-        copy_files(args.tracking_output_dir, args.eval_dir)
+    # if args.eval is True:
+    #     copy_files(args.tracking_output_dir, args.eval_dir)
 
-        logger.info("=========Eval Start=========")
-        result_sha = "sha_key"
-        mail = mailpy.Mail("")
-        success = evaluate(result_sha, mail)
-        mail.finalize(success, "tracking", result_sha, "")
+    #     logger.info("=========Eval Start=========")
+    #     result_sha = "sha_key"
+    #     mail = mailpy.Mail("")
+    #     success = evaluate(result_sha, mail)
+    #     mail.finalize(success, "tracking", result_sha, "")
 
     # logger.info("========= logging.. =========")
 
