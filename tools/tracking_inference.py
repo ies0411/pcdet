@@ -10,6 +10,7 @@ import torch
 import argparse
 import time
 
+
 import copy
 import numpy as np
 import torch
@@ -20,8 +21,12 @@ from pcdet.utils import common_utils
 from tracking_modules.model import Spb3DMOT
 from tracking_modules.utils import Config
 from tracking_modules.nms import nms
-from utils import read_calib, bb3d_2_bb2d, velo_to_cam, vel_to_cam_pose
+import tracking_modules.evaluation.mailpy
+
+
+from utils import read_calib, bb3d_2_bb2d, velo_to_cam, vel_to_cam_pose, copy_files
 from torch.utils.data import Dataset, DataLoader
+from tracking_modules.evaluation.evaluate_tracking import evaluate
 
 # https://github.com/hailanyi/3D-Multi-Object-Tracker/tree/master
 # https://github.com/JonathonLuiten/TrackEval?tab=readme-ov-file
@@ -39,14 +44,14 @@ def parse_config():
     parser.add_argument(
         "--data_path",
         type=str,
-        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/",
+        default="../sample/lidar",
         help="specify the point cloud data file or directory",
     )
     # ../sample/lidar
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/detector_2/ckpt/checkpoint_epoch_80.pth",
+        default="/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/checkpoint_epoch_6.pth",
         type=str,
         help="specify the pretrained model",
     )
@@ -72,8 +77,19 @@ def parse_config():
     # "/mnt/nas3/Data/kitti-processed/object_tracking/training/calib"
     parser.add_argument(
         "--calib_dir",
-        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/calib",
+        default="../sample/calib/",
         type=str,
+    )
+
+    parser.add_argument(
+        "--eval_dir",
+        default="./tracking_modules/evaluation/results/sha_key/data/",
+        type=str,
+    )
+    parser.add_argument(
+        "--eval",
+        default=True,
+        type=bool,
     )
 
     args = parser.parse_args()
@@ -274,9 +290,8 @@ def main():
 
             # TODO : nms
             for label, pred_bboxes in detection_results_dict.items():
-                # if detection_cfg.CLASS_NAMES[int(label) - 1] == "Cyclist":
-                    # continue
-
+                if detection_cfg.CLASS_NAMES[int(label) - 1] == "Cyclist":
+                    continue
                 pred_bboxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
                 frame_idx = str(data_dict["frame_id"][0])
                 tracker = tracker_dict[detection_cfg.CLASS_NAMES[int(label) - 1]]
@@ -334,7 +349,18 @@ def main():
                             )
 
     logger.info(f"tracking time : { time.time()-tracking_time}")
-    logger.info("========= Finish =========")
+    logger.info("=========Tracking Finish =========")
+
+    # eval
+    if args.eval is True:
+        copy_files(args.tracking_output_dir, args.eval_dir)
+
+        logger.info("=========Eval Start=========")
+        result_sha = "sha_key"
+        mail = mailpy.Mail("")
+        success = evaluate(result_sha, mail)
+        mail.finalize(success, "tracking", result_sha, "")
+
     # logger.info("========= logging.. =========")
 
     ########

@@ -25,14 +25,14 @@ import os
 import sys
 from collections import defaultdict
 
-from munkres import Munkres
+from .munkres import Munkres
 
 try:
     from ordereddict import OrderedDict  # can be installed using pip
 except:
     from collections import OrderedDict  # only included from python 2.7 on
 
-import mailpy
+from . import mailpy
 
 
 class tData:

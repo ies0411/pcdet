@@ -1,6 +1,24 @@
 import re
 import numpy as np
 
+
+import shutil
+import os
+
+
+def copy_files(src_folder, dest_folder):
+    if not os.path.exists(dest_folder):
+        os.makedirs(dest_folder)
+
+    for filename in os.listdir(src_folder):
+        src_file = os.path.join(src_folder, filename)
+        dest_file = os.path.join(dest_folder, filename)
+
+        if os.path.isfile(src_file):
+            shutil.copy(src_file, dest_file)
+            print(f"Copied: {src_file} to {dest_file}")
+
+
 """
 input: calib txt path
 return: P2: (4,4) 3D camera coordinates to 2D image pixels
