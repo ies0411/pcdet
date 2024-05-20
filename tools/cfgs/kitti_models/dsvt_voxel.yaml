@@ -91,8 +91,10 @@ MODEL:
             }
 
         POST_PROCESSING:
-            SCORE_THRESH: 0.1
-            POST_CENTER_LIMIT_RANGE: [-80, -80, -10.0, 80, 80, 10.0]
+            SCORE_THRESH: 0.5
+            POST_CENTER_LIMIT_RANGE: [0, -40, -3, 70.4, 40, 1]
+            # [-80, -80, -10.0, 80, 80, 10.0]
+
             # [0, -40, -3, 70.4, 40, 1]
             # [ -75.2, -75.2, -2, 75.2, 75.2, 4 ]
             MAX_OBJ_PER_SAMPLE: 500
@@ -128,9 +130,9 @@ OPTIMIZATION:
     NUM_EPOCHS: 80
 
     OPTIMIZER: adam_onecycle
-    LR: 0.0003 #
+    LR: 0.003 #
     WEIGHT_DECAY: 0.0001
-    MOMENTUM: 0.01
+    MOMENTUM: 0.09
 
     MOMS: [0.95, 0.85]
     PCT_START: 0.1
@@ -139,8 +141,8 @@ OPTIMIZATION:
     LR_DECAY: 0.1
     LR_CLIP: 0.0000001
 
-    LR_WARMUP: True
-    WARMUP_EPOCH: 8
+    LR_WARMUP: False
+    WARMUP_EPOCH: 1
 
     GRAD_NORM_CLIP: 10
     LOSS_SCALE_FP16: 32.0

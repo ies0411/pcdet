@@ -330,7 +330,6 @@ class CenterHead(nn.Module):
     def get_loss(self):
         pred_dicts = self.forward_ret_dict["pred_dicts"]
         target_dicts = self.forward_ret_dict["target_dicts"]
-
         tb_dict = {}
         loss = 0
 
@@ -361,11 +360,9 @@ class CenterHead(nn.Module):
                 )
             ).sum()
             loc_loss = loc_loss * self.model_cfg.LOSS_CONFIG.LOSS_WEIGHTS["loc_weight"]
-
             loss += hm_loss + loc_loss
             tb_dict["hm_loss_head_%d" % idx] = hm_loss.item()
             tb_dict["loc_loss_head_%d" % idx] = loc_loss.item()
-
             if "iou" in pred_dict or self.model_cfg.get("IOU_REG_LOSS", False):
                 batch_box_preds = centernet_utils.decode_bbox_from_pred_dicts(
                     pred_dict=pred_dict,
@@ -391,7 +388,6 @@ class CenterHead(nn.Module):
                     except Exception as e:
                         iou_loss = torch.tensor(0.0001)
                         loss += iou_loss
-
                     tb_dict["iou_loss_head_%d" % idx] = iou_loss.item()
 
                 if self.model_cfg.get("IOU_REG_LOSS", False):
@@ -415,6 +411,7 @@ class CenterHead(nn.Module):
                         ).sum()
 
         tb_dict["rpn_loss"] = loss.item()
+        # if torch.isnan(loss):
         return loss, tb_dict
 
     def generate_predicted_boxes(self, batch_size, pred_dicts):
