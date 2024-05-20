@@ -63,8 +63,8 @@ MODEL:
         USE_BIAS_BEFORE_NORM: False
         NUM_HM_CONV: 2
 
-        BN_EPS: 0.001
-        BN_MOM: 0.01
+        # BN_EPS: 0.001
+        # BN_MOM: 0.01
         SEPARATE_HEAD_CFG:
             HEAD_ORDER: ['center', 'center_z', 'dim', 'rot']
             HEAD_DICT: {
@@ -81,7 +81,7 @@ MODEL:
             GAUSSIAN_OVERLAP: 0.1
             MIN_RADIUS: 2
 
-        IOU_REG_LOSS: True
+        # IOU_REG_LOSS: True
 
         LOSS_CONFIG:
             LOSS_WEIGHTS: {
@@ -91,22 +91,28 @@ MODEL:
             }
 
         POST_PROCESSING:
-            SCORE_THRESH: 0.5
-            POST_CENTER_LIMIT_RANGE: [0, -40, -3, 70.4, 40, 1]
+            SCORE_THRESH: 0.01
+            POST_CENTER_LIMIT_RANGE: [ -75.2, -75.2, -2, 75.2, 75.2, 4 ]
+            # SCORE_THRESH: 0.1
+            # POST_CENTER_LIMIT_RANGE: [0, -40, -3, 70.4, 40, 1]
             # [-80, -80, -10.0, 80, 80, 10.0]
 
             # [0, -40, -3, 70.4, 40, 1]
             # [ -75.2, -75.2, -2, 75.2, 75.2, 4 ]
             MAX_OBJ_PER_SAMPLE: 500
-
-            USE_IOU_TO_RECTIFY_SCORE: True
-            IOU_RECTIFIER: [0.68, 0.71, 0.65]
-
             NMS_CONFIG:
-                NMS_TYPE: class_specific_nms
-                NMS_THRESH: [0.75, 0.6, 0.55]
-                NMS_PRE_MAXSIZE: [4096, 4096, 4096]
-                NMS_POST_MAXSIZE: [500, 500, 500]
+                NMS_TYPE: nms_gpu
+                NMS_THRESH: 0.7
+                NMS_PRE_MAXSIZE: 4096
+                NMS_POST_MAXSIZE: 500
+            # USE_IOU_TO_RECTIFY_SCORE: True
+            # IOU_RECTIFIER: [0.68, 0.71, 0.65]
+
+            # NMS_CONFIG:
+            #     NMS_TYPE: class_specific_nms
+            #     NMS_THRESH: [0.75, 0.6, 0.55]
+            #     NMS_PRE_MAXSIZE: [4096, 4096, 4096]
+            #     NMS_POST_MAXSIZE: [500, 500, 500]
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
