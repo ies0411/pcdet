@@ -125,6 +125,8 @@ class trackingEvaluation(object):
         max_occlusion=2,
         mail=None,
         cls="car",
+        # car
+        # pedestrian
     ):
         # get number of sequences and
         # get number of frames per sequence from test mapping
@@ -336,6 +338,9 @@ class trackingEvaluation(object):
                     f_data += [[] for x in range(max(500, idx - len(f_data)))]
                 try:
                     id_frame = (t_data.frame, t_data.track_id)
+                    # print(f"id_frame : {id_frame}")
+                    # print(f"id_frame_cache : {id_frame_cache}")
+                    # print(f"loading_groundtruth : {loading_groundtruth}")
                     if id_frame in id_frame_cache and not loading_groundtruth:
                         self.mail.msg(
                             "track ids are not unique for sequence %d: frame %d"

@@ -333,7 +333,7 @@ def main():
                             box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
                             box2d = bb3d_2_bb2d(box, P2)
                             f.write(
-                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]:.4f} {box2d[0][1]:.4f} {box2d[0][2]:.4f} {box2d[0][3]:.4f} {box[3]:.4f} {box[4]:.4f} {box[5]:.4f} {box[0]:.4f} {box[1]:.4f} {box[2]:.4f} {box[6]:.4f} \n"
+                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]:.6f} {box2d[0][1]:.6f} {box2d[0][2]:.6f} {box2d[0][3]:.6f} {box[5]:.6f} {box[4]:.6f} {box[3]:.6f} {box[0]:.6f} {box[1]:.6f} {box[2]:.6f} {box[6]:.6f} \n"
                             )
                     else:
                         with open(save_path, "w") as f:
@@ -347,7 +347,7 @@ def main():
                             box2d = bb3d_2_bb2d(box, P2)
 
                             f.write(
-                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]:.4f} {box2d[0][1]:.4f} {box2d[0][2]:.4f} {box2d[0][3]:.4f} {box[3]:.4f} {box[4]:.4f} {box[5]:.4f} {box[0]:.4f} {box[1]:.4f} {box[2]:.4f} {box[6]:.4f} \n"
+                                f"{frame_idx} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(label) - 1]} -1 -1 -10 {box2d[0][0]:.6f} {box2d[0][1]:.6f} {box2d[0][2]:.6f} {box2d[0][3]:.6f} {box[5]:.6f} {box[4]:.6f} {box[3]:.6f} {box[0]:.6f} {box[1]:.6f} {box[2]:.6f} {box[6]:.6f} \n"
                             )
 
     logger.info(f"tracking time : { time.time()-tracking_time}")
