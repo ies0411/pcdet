@@ -53,10 +53,12 @@ def parse_config():
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/checkpoint_epoch_9.pth",
+        default="/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/latest_model.pth",
         type=str,
         help="specify the pretrained model",
     )
+    # /mnt/nas2/users/eslim/result_log/kitti_anchor_r
+    # /mnt/nas2/users/eslim/tracking/detector_test2/ckpt/latest_model.pth
     # "/mnt/nas2/users/eslim/tracking/detector_2/ckpt/checkpoint_epoch_80.pth"
     parser.add_argument(
         "--ext",
@@ -216,7 +218,7 @@ def _detection_postprocessing(pred_dicts, num_objects):
         label = str(pred_dicts[0]["pred_labels"][idx].item())
         pred_bbox = pred_bbox.tolist()
         pred_bbox.append(pred_dicts[0]["pred_scores"][idx].tolist())
-        pred_bbox.append(0.65)
+        pred_bbox.append(0.7)
         tracking_info_data[label].append(pred_bbox)
     return tracking_info_data
 
@@ -292,7 +294,10 @@ def main():
 
             # TODO : nms
             for label, pred_bboxes in detection_results_dict.items():
-                if detection_cfg.CLASS_NAMES[int(label) - 1] == "Cyclist":
+                if (
+                    detection_cfg.CLASS_NAMES[int(label) - 1] == "Cyclist"
+                    or detection_cfg.CLASS_NAMES[int(label) - 1] == "Car"
+                ):
                     continue
                 pred_bboxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
                 frame_idx = str(data_dict["frame_id"][0])
@@ -317,6 +322,7 @@ def main():
                 tracking_results = tracking_result
                 # print(f"tracking_result : {tracking_result}")
                 # tracking_result = tracking_result[0]
+
                 for tracking_result in tracking_results:
                     save_path = os.path.join(
                         args.tracking_output_dir,

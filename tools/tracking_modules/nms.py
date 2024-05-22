@@ -33,7 +33,7 @@ def iou(box_a, box_b):
 
 def nms(
     original_boxes,
-    iou_thres_same_class=0.3,
+    iou_thres_same_class=0.2,
     # iou_thres_different_class=0.6,
 ):
     # print(original_boxes)
