@@ -12,15 +12,28 @@ from .matching import data_association
 @jit(nopython=True, cache=True)
 def _within_range(theta):
     # make sure the orientation is within a proper range
-    while True:
-        if theta >= np.pi:
-            theta -= np.pi * 2  # make the theta stillf in the range
-        if theta < -np.pi:
-            theta += np.pi * 2
-        if theta < np.pi or theta >= -np.pi:
-            break
+    # while True:
+    #     if theta >= np.pi:
+    #         theta -= np.pi * 2  # make the theta stillf in the range
+    #     if theta < -np.pi:
+    #         theta += np.pi * 2
+    #     if theta < np.pi or theta >= -np.pi:
+    #         break
+    if theta >= np.pi:
+        theta -= np.pi * 2  # make the theta still in the range
+    if theta < -np.pi:
+        theta += np.pi * 2
 
     return theta
+
+
+# def within_range(self, theta):
+# 	# make sure the orientation is within a proper range
+
+# 	if theta >= np.pi: theta -= np.pi * 2    # make the theta still in the range
+# 	if theta < -np.pi: theta += np.pi * 2
+
+# 	return theta
 
 
 @jit(nopython=True, cache=True)
@@ -32,16 +45,26 @@ def _select_giou_thres(bbox_a, bbox_b):
         else ((bbox_a[3] * bbox_a[4] * bbox_a[5]) + (bbox_b[3] * bbox_b[4] * bbox_b[5]))
         / 2.0
     )
-
+    # print(volume_size)
     if volume_size > 15:
-        return 0.2
+        return -1.0
     elif volume_size > 8:
-        return 0.0
+        return -3.0
 
     elif volume_size > 5:
-        return -0.2
+        return -5.5
     else:
-        return -0.4
+        return -7.0
+
+    # if volume_size > 15:
+    #     return 0.2
+    # elif volume_size > 8:
+    #     return 0.0
+
+    # elif volume_size > 5:
+    #     return -0.2
+    # else:
+    #     return -0.4
 
 
 # TODO : adaptive filter
@@ -53,7 +76,7 @@ class Spb3DMOT(object):
         self.ID_count = [ID_init]
         self.ID_MAP = OrderedDict()
         self.real_ID = ID_init
-        self.alpha = 0.75
+        self.alpha = 0.0
         self.id_now_output = []
 
         # config
@@ -67,10 +90,15 @@ class Spb3DMOT(object):
         self.min_hits = None
         # debug
         self.debug_id = None
-        self.death_threshold = 0.2
+        self.death_threshold = 0.0
 
     def get_param(  # "greedy"
-        self, algm="hungar", metric="eiou", thres=-1.0, min_hits=1, max_age=2
+        self,
+        algm="hungar",
+        metric="eiou",
+        thres=-1.0,
+        min_hits=1,
+        max_age=2,
     ):
         # if metric in ["dist_3d", "dist_2d", "m_dis"]:
         #     thres *= -1
@@ -90,6 +118,7 @@ class Spb3DMOT(object):
         #     self.max_sim, self.min_sim = 1.0, 0.0
         # elif self.metric in ["giou_2d", "giou_3d"]:
         self.max_sim, self.min_sim = 1.0, -1.0
+        # self.max_sim, self.min_sim = 2.0, -2.0
 
     def process_dets(self, dets):
         # convert each detection into the class Box3D
@@ -102,11 +131,11 @@ class Spb3DMOT(object):
             dets_new.append(det_tmp)
 
         # dets_high = [Box3D.pcdet2bbox_raw(det) for det in dets if det[-2] > det[-1]]
-        dets_low = [
-            Box3D.pcdet2bbox_raw(det)
-            for det in dets
-            if det[-2] < det[-1] and det[-2] > 0.1
-        ]
+        # dets_low = [
+        #     Box3D.pcdet2bbox_raw(det)
+        #     for det in dets
+        #     if det[-2] < det[-1] and det[-2] > 0.1
+        # ]
         return dets_new
 
     def orientation_correction(self, theta_pre, theta_obs):
@@ -161,20 +190,21 @@ class Spb3DMOT(object):
                 # trk.time_since_update = 0  # reset because just updated
                 # trk.confidence = max(trk.confidence, dets[d[0]].s)
                 # trk.confidence = (trk.confidence + dets[d[0]].s) * 0.5
-                # trk.confidence = (1 - self.alpha) * trk.confidence + self.alpha * dets[
-                #     d[0]
-                # ].s
+                trk.confidence = (self.alpha) * trk.confidence + (
+                    1 - self.alpha
+                ) * dets[d[0]].s
+                # trk.confidence = dets[d[0]].s
                 # print(dets[d[0]])
                 # trk.confidence = (
                 #     dets[d[0]].s
                 #     if trk.threshold <= dets[d[0]].s
                 #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
                 # )
-                trk.confidence = (
-                    dets[d[0]].s
-                    if trk.threshold <= dets[d[0]].s
-                    else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
-                )
+                # trk.confidence = (
+                #     dets[d[0]].s
+                #     if trk.threshold <= dets[d[0]].s
+                #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
+                # )
 
                 # trk.confidence = dets[d[0]].s
                 # if dets[d[0]].s < 0.2:
@@ -351,7 +381,6 @@ class Spb3DMOT(object):
 
         # matching
         trk_innovation_matrix = None
-
         matched, unmatched_dets, unmatched_trks, cost, affi = data_association(
             dets, trks, self.metric, self.thres, self.algm, trk_innovation_matrix
         )

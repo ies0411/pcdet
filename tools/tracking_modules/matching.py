@@ -89,7 +89,7 @@ def data_association(
         trk_inv_inn_matrices = [np.linalg.inv(m) for m in trk_innovation_matrix]
     else:
         trk_inv_inn_matrices = None
-
+    # trk_inv_inn_matrices = [np.linalg.inv(m) for m in trk_innovation_matrix]
     # compute affinity matrix
     aff_matrix = compute_affinity(dets, trks, metric, trk_inv_inn_matrices)
 

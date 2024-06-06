@@ -7,7 +7,7 @@ from numba import jit
 
 @jit(nopython=True, cache=True)
 def get_bbox_distance(pose):
-    return np.sqrt(pose[0] ** 2 + pose[1] ** 2 + pose[2] ** 2) / 200
+    return np.sqrt(pose[0] ** 2 + pose[1] ** 2 + pose[2] ** 2) / 250
 
 
 class Filter(object):
@@ -119,6 +119,11 @@ class UKF(Filter):
 
         self.ukf.x[:7] = self.initial_pos
         # reshape((7, 1))
+
+    def compute_innovation_matrix(self):
+        """compute the innovation matrix for association with mahalanobis distance"""
+        # return np.matmul(np.matmul(self.ukf.Q, self.ukf.P), self.ukf.Q.T) + self.ukf.R
+        return self.ukf.R
 
     def hx(self, x):
         H = np.array(

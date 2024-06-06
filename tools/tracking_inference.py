@@ -40,7 +40,7 @@ def parse_config():
     parser.add_argument(
         "--cfg_file",
         type=str,
-        default="./cfgs/kitti_models/pv_rcnn.yaml",
+        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det/dsvt_voxel.yaml",
         help="specify the config for demo",
     )
     # /mnt/nas2/users/eslim/tracking/detector_test2/dsvt_voxel.yaml
@@ -58,10 +58,11 @@ def parse_config():
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/pv_rcnn_8369.pth",
+        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det/ckpt/latest_model.pth",
         type=str,
         help="specify the pretrained model",
     )
+    # "/mnt/nas2/users/eslim/tracking/pv_rcnn_8369.pth"
     # "/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/latest_model.pth"
     # /mnt/nas2/users/eslim/tracking/w_aug/ckpt
     # "/mnt/nas2/users/eslim/tracking/pretrained_aug/ckpt/latest_model.pth"
