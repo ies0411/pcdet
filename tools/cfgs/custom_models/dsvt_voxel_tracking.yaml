@@ -1,6 +1,4 @@
-
 CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
-
 DATA_CONFIG:
     _BASE_CONFIG_: /home/eslim/workspace/OpenPCDet/tools/cfgs/dataset_configs/dsvt_voxel_kitti.yaml
 
@@ -65,8 +63,8 @@ MODEL:
         USE_BIAS_BEFORE_NORM: False
         NUM_HM_CONV: 2
 
-        BN_EPS: 0.001
-        BN_MOM: 0.01
+        # BN_EPS: 0.001
+        # BN_MOM: 0.01
         SEPARATE_HEAD_CFG:
             HEAD_ORDER: ['center', 'center_z', 'dim', 'rot']
             HEAD_DICT: {
@@ -83,7 +81,7 @@ MODEL:
             GAUSSIAN_OVERLAP: 0.1
             MIN_RADIUS: 2
 
-        IOU_REG_LOSS: True
+        # IOU_REG_LOSS: True
 
         LOSS_CONFIG:
             LOSS_WEIGHTS: {
@@ -94,23 +92,31 @@ MODEL:
 
         POST_PROCESSING:
             SCORE_THRESH: 0.01
-            # POST_CENTER_LIMIT_RANGE: [-80, -80, -10.0, 80, 80, 10.0]
             POST_CENTER_LIMIT_RANGE: [ -75.2, -75.2, -2, 75.2, 75.2, 4 ]
-            # POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+            # SCORE_THRESH: 0.1
+            # POST_CENTER_LIMIT_RANGE: [0, -40, -3, 70.4, 40, 1]
+            # [-80, -80, -10.0, 80, 80, 10.0]
 
+            # [0, -40, -3, 70.4, 40, 1]
+            # [ -75.2, -75.2, -2, 75.2, 75.2, 4 ]
             MAX_OBJ_PER_SAMPLE: 500
-
-            USE_IOU_TO_RECTIFY_SCORE: True
-            IOU_RECTIFIER: [0.68, 0.71, 0.65]
-
             NMS_CONFIG:
-                NMS_TYPE: class_specific_nms
-                NMS_THRESH: [0.75, 0.6, 0.55]
-                NMS_PRE_MAXSIZE: [4096, 4096, 4096]
-                NMS_POST_MAXSIZE: [500, 500, 500]
+                NMS_TYPE: nms_gpu
+                NMS_THRESH: 0.7
+                NMS_PRE_MAXSIZE: 4096
+                NMS_POST_MAXSIZE: 500
+            # USE_IOU_TO_RECTIFY_SCORE: True
+            # IOU_RECTIFIER: [0.68, 0.71, 0.65]
+
+            # NMS_CONFIG:
+            #     NMS_TYPE: class_specific_nms
+            #     NMS_THRESH: [0.75, 0.6, 0.55]
+            #     NMS_PRE_MAXSIZE: [4096, 4096, 4096]
+            #     NMS_POST_MAXSIZE: [500, 500, 500]
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
+
         SCORE_THRESH: 0.1
         OUTPUT_RAW_SCORE: False
 
@@ -126,13 +132,13 @@ MODEL:
 
 
 OPTIMIZATION:
-    BATCH_SIZE_PER_GPU: 3
-    NUM_EPOCHS: 60
+    BATCH_SIZE_PER_GPU: 1
+    NUM_EPOCHS: 80
 
     OPTIMIZER: adam_onecycle
     LR: 0.003 #
-    WEIGHT_DECAY: 0.0005
-    MOMENTUM: 0.9
+    WEIGHT_DECAY: 0.0001
+    MOMENTUM: 0.09
 
     MOMS: [0.95, 0.85]
     PCT_START: 0.1
@@ -141,8 +147,8 @@ OPTIMIZATION:
     LR_DECAY: 0.1
     LR_CLIP: 0.0000001
 
-    LR_WARMUP: True
-    WARMUP_EPOCH: 5
+    LR_WARMUP: False
+    WARMUP_EPOCH: 1
 
     GRAD_NORM_CLIP: 10
     LOSS_SCALE_FP16: 32.0

@@ -69,9 +69,10 @@ class CustomDataset(DatasetTemplate):
 
     def get_label(self, idx):
         label_file = self.root_path / "labels" / ("%s.txt" % idx)
-        if label_file.exists() == False:
-            print("-----------------------------------")
-            print(label_file)
+        # print(f"label_file : {label_file}")
+        # if label_file.exists() == False:
+        # print("-----------------------------------")
+        # print(label_file)
         assert label_file.exists()
         with open(label_file, "r") as f:
             lines = f.readlines()
@@ -88,6 +89,8 @@ class CustomDataset(DatasetTemplate):
 
     def get_lidar(self, idx):
         lidar_file = self.root_path / "points" / ("%s.npy" % idx)
+        if lidar_file.exists() != True:
+            print(lidar_file)
         assert lidar_file.exists()
         point_features = np.load(lidar_file)
         return point_features
@@ -453,23 +456,26 @@ if __name__ == "__main__":
 
         dataset_cfg = EasyDict(yaml.safe_load(open(sys.argv[2])))
         # ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
-        data_path = Path("/mnt/nas3/Data/a9/convert_custom").resolve()
+        # data_path = Path("/mnt/nas3/Data/a9/convert_custom").resolve()
+        data_path = Path(
+            "/mnt/nas2/users/eslim/workspace/tracking_convert/custom"
+        ).resolve()
 
         create_custom_infos(
             dataset_cfg=dataset_cfg,
-            class_names=[
-                "CAR",
-                "BUS",
-                "TRUCK",
-                "VAN",
-                "TRAILER",
-                "EMERGENCY_VEHICLE",
-                "BICYCLE",
-                "MOTORCYCLE",
-                "PEDESTRIAN",
-                "OTHER",
-            ],
-            # class_names=['Vehicle', 'Pedestrian', 'Cyclist'],
+            # class_names=[
+            #     "CAR",
+            #     "BUS",
+            #     "TRUCK",
+            #     "VAN",
+            #     "TRAILER",
+            #     "EMERGENCY_VEHICLE",
+            #     "BICYCLE",
+            #     "MOTORCYCLE",
+            #     "PEDESTRIAN",
+            #     "OTHER",
+            # ],
+            class_names=["Car", "Pedestrian", "Cyclist"],
             # data_path=ROOT_DIR / 'data' / 'custom',
             # save_path=ROOT_DIR / 'data' / 'custom',
             data_path=data_path,

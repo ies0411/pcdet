@@ -357,3 +357,28 @@
 2024-04-19 01:37:51,336   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
 2024-04-19 01:37:51,539   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
 2024-04-19 01:37:51,591   INFO  ==> Done (loaded 391/391)
+2024-05-24 10:54:55,781   INFO  Loading Custom dataset.
+2024-05-24 10:54:55,784   INFO  Total samples for CUSTOM dataset: 0
+2024-05-24 10:55:00,422   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-05-24 10:55:02,422   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-05-24 10:55:02,552   INFO  ==> Done (loaded 391/391)
+2024-05-24 11:05:28,442   INFO  Loading Custom dataset.
+2024-05-24 11:05:28,445   INFO  Total samples for CUSTOM dataset: 0
+2024-05-24 11:05:31,753   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-05-24 11:05:32,264   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-05-24 11:05:32,365   INFO  ==> Done (loaded 391/391)
+2024-05-24 11:11:05,776   INFO  Loading Custom dataset.
+2024-05-24 11:11:05,776   INFO  Loading Custom dataset.
+2024-05-24 11:11:05,779   INFO  Total samples for CUSTOM dataset: 0
+2024-05-24 11:11:05,779   INFO  Total samples for CUSTOM dataset: 0
+2024-05-24 11:11:05,939   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-05-24 11:11:05,939   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-05-24 11:11:06,315   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-05-24 11:11:06,315   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-05-24 11:11:06,483   INFO  ==> Done (loaded 391/391)
+2024-05-24 11:11:06,483   INFO  ==> Done (loaded 391/391)
+2024-05-24 11:12:02,003   INFO  Loading Custom dataset.
+2024-05-24 11:12:02,004   INFO  Total samples for CUSTOM dataset: 0
+2024-05-24 11:12:05,302   INFO  ==> Loading parameters from checkpoint ./pillar/model.pth to GPU
+2024-05-24 11:12:05,731   INFO  ==> Checkpoint trained from version: pcdet+0.6.0+255db8f
+2024-05-24 11:12:05,804   INFO  ==> Done (loaded 391/391)

@@ -40,9 +40,14 @@ def parse_config():
     parser.add_argument(
         "--cfg_file",
         type=str,
-        default="./cfgs/kitti_models/dsvt_voxel.yaml",
+        default="./cfgs/kitti_models/pv_rcnn.yaml",
         help="specify the config for demo",
     )
+    # /mnt/nas2/users/eslim/tracking/detector_test2/dsvt_voxel.yaml
+    # "./cfgs/kitti_models/pv_rcnn.yaml"
+    # "./cfgs/kitti_models/dsvt_voxel.yaml"
+    # "/mnt/nas2/users/eslim/tracking/wo_aug/dsvt_voxel_tracking.yaml"
+
     parser.add_argument(
         "--data_path",
         type=str,
@@ -53,13 +58,17 @@ def parse_config():
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/latest_model.pth",
+        default="/mnt/nas2/users/eslim/tracking/pv_rcnn_8369.pth",
         type=str,
         help="specify the pretrained model",
     )
+    # "/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/latest_model.pth"
+    # /mnt/nas2/users/eslim/tracking/w_aug/ckpt
+    # "/mnt/nas2/users/eslim/tracking/pretrained_aug/ckpt/latest_model.pth"
     # /mnt/nas2/users/eslim/result_log/kitti_anchor_r
     # /mnt/nas2/users/eslim/tracking/detector_test2/ckpt/latest_model.pth
     # "/mnt/nas2/users/eslim/tracking/detector_2/ckpt/checkpoint_epoch_80.pth"
+    # "/mnt/nas2/users/eslim/tracking/wo_aug/ckpt/latest_model.pth"
     parser.add_argument(
         "--ext",
         type=str,
@@ -158,6 +167,7 @@ class TrackerDataset(DatasetTemplate):
                 frame_idx = idx
                 pre_index = self.num_file_list[idx - 1] if idx != 0 else pre_index
                 break
+
         P2, V2C = read_calib(
             os.path.join(self.args.calib_dir, f"{str(frame_idx).zfill(4)}.txt")
         )
@@ -218,7 +228,7 @@ def _detection_postprocessing(pred_dicts, num_objects):
         label = str(pred_dicts[0]["pred_labels"][idx].item())
         pred_bbox = pred_bbox.tolist()
         pred_bbox.append(pred_dicts[0]["pred_scores"][idx].tolist())
-        pred_bbox.append(0.7)
+        # pred_bbox.append(0.7)
         tracking_info_data[label].append(pred_bbox)
     return tracking_info_data
 
@@ -294,12 +304,14 @@ def main():
 
             # TODO : nms
             for label, pred_bboxes in detection_results_dict.items():
-                if (
-                    detection_cfg.CLASS_NAMES[int(label) - 1] == "Cyclist"
-                    or detection_cfg.CLASS_NAMES[int(label) - 1] == "Car"
-                ):
-                    continue
+                # if (
+                #     detection_cfg.CLASS_NAMES[int(label) - 1] == "Cyclist"
+                #     or detection_cfg.CLASS_NAMES[int(label) - 1] == "Car"
+                # ):
+                #     continue
                 pred_bboxes = nms(pred_bboxes) if len(pred_bboxes) != 0 else []
+                if pred_bboxes is None:
+                    pred_bboxes = []
                 frame_idx = str(data_dict["frame_id"][0])
                 tracker = tracker_dict[detection_cfg.CLASS_NAMES[int(label) - 1]]
                 tracking_result, _ = tracker.track(pred_bboxes)

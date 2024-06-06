@@ -96,7 +96,9 @@ def parse_config():
         help="number of checkpoints to be evaluated",
     )
     parser.add_argument("--save_to_file", action="store_true", default=False, help="")
-
+    parser.add_argument(
+        "--local-rank", type=int, default=0, help="local rank for distributed training"
+    )
     parser.add_argument(
         "--use_tqdm_to_record",
         action="store_true",

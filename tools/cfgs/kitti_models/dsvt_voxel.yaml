@@ -102,7 +102,7 @@ MODEL:
             MAX_OBJ_PER_SAMPLE: 500
             NMS_CONFIG:
                 NMS_TYPE: nms_gpu
-                NMS_THRESH: 0.7
+                NMS_THRESH: 0.3
                 NMS_PRE_MAXSIZE: 4096
                 NMS_POST_MAXSIZE: 500
             # USE_IOU_TO_RECTIFY_SCORE: True

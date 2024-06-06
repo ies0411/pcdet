@@ -34,14 +34,14 @@ def _select_giou_thres(bbox_a, bbox_b):
     )
 
     if volume_size > 15:
-        return 0.1
+        return 0.2
     elif volume_size > 8:
-        return -0.1
+        return 0.0
 
     elif volume_size > 5:
-        return -0.5
+        return -0.2
     else:
-        return -0.7
+        return -0.4
 
 
 # TODO : adaptive filter
@@ -53,7 +53,7 @@ class Spb3DMOT(object):
         self.ID_count = [ID_init]
         self.ID_MAP = OrderedDict()
         self.real_ID = ID_init
-
+        self.alpha = 0.75
         self.id_now_output = []
 
         # config
@@ -67,10 +67,10 @@ class Spb3DMOT(object):
         self.min_hits = None
         # debug
         self.debug_id = None
-        self.death_threshold = 0.1
+        self.death_threshold = 0.2
 
     def get_param(  # "greedy"
-        self, algm="hungar", metric="eiou", thres=-0.5, min_hits=1, max_age=2
+        self, algm="hungar", metric="eiou", thres=-1.0, min_hits=1, max_age=2
     ):
         # if metric in ["dist_3d", "dist_2d", "m_dis"]:
         #     thres *= -1
@@ -96,20 +96,18 @@ class Spb3DMOT(object):
         # inputs:
         # 	dets - a numpy array of detections in the format [[h,w,l,x,y,z,theta],...]
         dets_new = []
-        # dets : [[42.35746765136719, 6.294949531555176, -0.6724109649658203, 0.6947809457778931, 0.6723328232765198, 1.6847240924835205, 6.3626885414123535, 0.21080490946769714, 0.5],
-        #         [-21.329811096191406, -1.3849732875823975, -1.0482765436172485, 0.6782370209693909, 0.6069652438163757, 1.665456771850586, 5.301192283630371, 0.14246301352977753, 0.5],
-        # [44.61482620239258, 4.7019829750061035, -0.48246583342552185, 0.7044910788536072, 0.6307433843612671, 1.8210793733596802, 6.282752990722656, 0.12992656230926514, 0.5]]
+
         for det in dets:
             det_tmp = Box3D.pcdet2bbox_raw(det)
             dets_new.append(det_tmp)
 
-        dets_high = [Box3D.pcdet2bbox_raw(det) for det in dets if det[-2] > det[-1]]
+        # dets_high = [Box3D.pcdet2bbox_raw(det) for det in dets if det[-2] > det[-1]]
         dets_low = [
             Box3D.pcdet2bbox_raw(det)
             for det in dets
             if det[-2] < det[-1] and det[-2] > 0.1
         ]
-        return dets_new, dets_high, dets_low
+        return dets_new
 
     def orientation_correction(self, theta_pre, theta_obs):
         # update orientation in propagated tracks and detected boxes so that they are within 90 degree
@@ -161,7 +159,33 @@ class Spb3DMOT(object):
 
                 # update statistics
                 # trk.time_since_update = 0  # reset because just updated
-                trk.confidence = max(trk.confidence, dets[d[0]].s)
+                # trk.confidence = max(trk.confidence, dets[d[0]].s)
+                # trk.confidence = (trk.confidence + dets[d[0]].s) * 0.5
+                # trk.confidence = (1 - self.alpha) * trk.confidence + self.alpha * dets[
+                #     d[0]
+                # ].s
+                # print(dets[d[0]])
+                # trk.confidence = (
+                #     dets[d[0]].s
+                #     if trk.threshold <= dets[d[0]].s
+                #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
+                # )
+                trk.confidence = (
+                    dets[d[0]].s
+                    if trk.threshold <= dets[d[0]].s
+                    else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
+                )
+
+                # trk.confidence = dets[d[0]].s
+                # if dets[d[0]].s < 0.2:
+                # print(dets[d[0]].s)
+                # (
+                #     dets[d[0]].s
+                #     if trk.threshold <= dets[d[0]].s
+                #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
+                # )
+
+                # trk.confidence = dets[d[0]].s
                 trk.hits = True
 
                 # update orientation in propagated tracks and detected boxes so that they are within 90 degree
@@ -178,6 +202,7 @@ class Spb3DMOT(object):
                 trk.ukf.x[3] = _within_range(trk.ukf.x[3])
             else:
                 trk.confidence -= trk.distance
+                # trk.confidence -= 0.1
                 trk.hits = False
 
     def birth(self, dets, unmatched_dets):
@@ -215,6 +240,7 @@ class Spb3DMOT(object):
 
             if trk.confidence <= self.death_threshold:
                 self.trackers.pop(num_trks)
+
         return results
 
     def process_affi(self, affi, matched, unmatched_dets, new_id_list):
@@ -318,7 +344,7 @@ class Spb3DMOT(object):
         self.id_past_output = copy.copy(self.id_now_output)
         self.id_past = [trk.id for trk in self.trackers]
         # process detection format
-        dets, dets_high, dets_low = self.process_dets(dets)
+        dets = self.process_dets(dets)
 
         # tracks propagation based on velocity
         trks = self.prediction()
