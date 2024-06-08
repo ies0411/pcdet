@@ -104,16 +104,19 @@ class UKF(Filter):
             dim_x=13, dim_z=7, dt=0.1, fx=self.fx, hx=self.hx, points=self.points
         )
         # measurement uncertainty, uncomment if not super trust the measurement data due to detection noise
-        self.ukf.R[0:, 0:] *= np.clip(0.05 * (1 - self.confidence), 0.001, 0.1)
-        # 0.01
+
+        self.ukf.R[:, :] *= 0.000001 * (1 - self.confidence)
+        # self.ukf.R[:, :] *= np.clip(0.05 * (1 - self.confidence), 0.0001, 0.01)
+
+        # self.ukf.R[:, :] *= 0.05 * (1 - self.confidence)
 
         # initial state uncertainty at time 0
         # Given a single data, the initial velocity is very uncertain, so giv a high uncertainty to start
-        self.ukf.P[7:, 7:] *= 1000.0
-        self.ukf.P *= 10.0
+        # self.ukf.P[7:, 7:] *= 1000.0
+        # self.ukf.P *= 10.0
 
         # process uncertainty, make the constant velocity part more certain
-        self.ukf.Q[7:, 7:] *= 0.01
+        # self.ukf.Q[7:, 7:] *= 0.01
 
         # initialize data
 
@@ -143,7 +146,7 @@ class UKF(Filter):
     # state x dimension 10: x, y, z, theta, l, w, h, vx, vy, yz, ax, ay, az //CA Model
 
     def fx(self, x, dt):
-        # [x, y, z, w, l, h, vx, vy, vz, ax, ay, az, ry]
+        # [x, y, z, rot, w, l, h, vx, vy, vz, ax, ay, az]
         # displacement = x[10] * dt + x[11] * dt**2 / 2
         # yaw_sin, yaw_cos = np.sin(x[3]), np.cos(x[3])
         F = np.array(

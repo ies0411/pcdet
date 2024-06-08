@@ -46,6 +46,7 @@ def _select_giou_thres(bbox_a, bbox_b):
         / 2.0
     )
     # print(volume_size)
+
     if volume_size > 15:
         return -1.0
     elif volume_size > 8:
@@ -76,7 +77,7 @@ class Spb3DMOT(object):
         self.ID_count = [ID_init]
         self.ID_MAP = OrderedDict()
         self.real_ID = ID_init
-        self.alpha = 0.0
+        self.alpha = 0.25
         self.id_now_output = []
 
         # config
@@ -190,9 +191,13 @@ class Spb3DMOT(object):
                 # trk.time_since_update = 0  # reset because just updated
                 # trk.confidence = max(trk.confidence, dets[d[0]].s)
                 # trk.confidence = (trk.confidence + dets[d[0]].s) * 0.5
+
                 trk.confidence = (self.alpha) * trk.confidence + (
                     1 - self.alpha
                 ) * dets[d[0]].s
+                # self.ukf.R[:, :] = 0.00001 * (1 - self.confidence)
+                # trk.ukf.R[:, :] *= np.clip(0.001 * (1 - trk.confidence), 0.00001, 0.001)
+
                 # trk.confidence = dets[d[0]].s
                 # print(dets[d[0]])
                 # trk.confidence = (

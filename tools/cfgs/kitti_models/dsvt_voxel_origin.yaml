@@ -133,10 +133,10 @@ MODEL:
 
 OPTIMIZATION:
     BATCH_SIZE_PER_GPU: 2
-    NUM_EPOCHS: 20
+    NUM_EPOCHS: 80
 
     OPTIMIZER: adam_onecycle
-    LR: 0.0007 #
+    LR: 0.003 #
     WEIGHT_DECAY: 0.0001
     MOMENTUM: 0.09
 
