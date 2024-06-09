@@ -1766,70 +1766,277 @@ class KittiDataset(DatasetTemplate):
 
         return len(self.kitti_infos)
 
+    # def __getitem__(self, index):
+    #     # index = 4
+    #     if self._merge_all_iters_to_one_epoch:
+    #         index = index % len(self.kitti_infos)
+
+    #     info = copy.deepcopy(self.kitti_infos[index])
+
+    #     sample_idx = info["point_cloud"]["lidar_idx"]
+    #     img_shape = info["image"]["image_shape"]
+    #     calib = self.get_calib(sample_idx)
+    #     get_item_list = self.dataset_cfg.get("GET_ITEM_LIST", ["points"])
+
+    #     input_dict = {
+    #         "frame_id": sample_idx,
+    #         "calib": calib,
+    #     }
+
+    #     if "annos" in info:
+    #         annos = info["annos"]
+    #         annos = common_utils.drop_info_with_name(annos, name="DontCare")
+    #         loc, dims, rots = (
+    #             annos["location"],
+    #             annos["dimensions"],
+    #             annos["rotation_y"],
+    #         )
+    #         gt_names = annos["name"]
+    #         gt_boxes_camera = np.concatenate(
+    #             [loc, dims, rots[..., np.newaxis]], axis=1
+    #         ).astype(np.float32)
+    #         gt_boxes_lidar = box_utils.boxes3d_kitti_camera_to_lidar(
+    #             gt_boxes_camera, calib
+    #         )
+
+    #         input_dict.update({"gt_names": gt_names, "gt_boxes": gt_boxes_lidar})
+    #         if "gt_boxes2d" in get_item_list:
+    #             input_dict["gt_boxes2d"] = annos["bbox"]
+
+    #         road_plane = self.get_road_plane(sample_idx)
+    #         if road_plane is not None:
+    #             input_dict["road_plane"] = road_plane
+
+    #     if "points" in get_item_list:
+    #         points = self.get_lidar(sample_idx)
+    #         if self.dataset_cfg.FOV_POINTS_ONLY:
+    #             pts_rect = calib.lidar_to_rect(points[:, 0:3])
+    #             fov_flag = self.get_fov_flag(pts_rect, img_shape, calib)
+    #             points = points[fov_flag]
+    #         input_dict["points"] = points
+
+    #     if "images" in get_item_list:
+    #         input_dict["images"] = self.get_image(sample_idx)
+
+    #     if "depth_maps" in get_item_list:
+    #         input_dict["depth_maps"] = self.get_depth_map(sample_idx)
+
+    #     if "calib_matricies" in get_item_list:
+    #         input_dict["trans_lidar_to_cam"], input_dict["trans_cam_to_img"] = (
+    #             kitti_utils.calib_to_matricies(calib)
+    #         )
+
+    #     input_dict["calib"] = calib
+    #     data_dict = self.prepare_data(data_dict=input_dict)
+
+    #     data_dict["image_shape"] = img_shape
+    #     return data_dict
+
     def __getitem__(self, index):
-        # index = 4
-        if self._merge_all_iters_to_one_epoch:
-            index = index % len(self.kitti_infos)
+        if len(self.dataset_cfg.DATA_AUGMENTOR.MIX.NAME_LIST) == 0 or np.random.random(
+            1
+        ) > self.dataset_cfg.DATA_AUGMENTOR.MIX.get("PROB", 0):
+            info = copy.deepcopy(self.kitti_infos[index])
 
-        info = copy.deepcopy(self.kitti_infos[index])
+            sample_idx = info["point_cloud"]["lidar_idx"]
 
-        sample_idx = info["point_cloud"]["lidar_idx"]
-        img_shape = info["image"]["image_shape"]
-        calib = self.get_calib(sample_idx)
-        get_item_list = self.dataset_cfg.get("GET_ITEM_LIST", ["points"])
+            img_shape = info["image"]["image_shape"]
+            calib = self.get_calib(sample_idx)
+            get_item_list = self.dataset_cfg.get("GET_ITEM_LIST", ["points"])
 
-        input_dict = {
-            "frame_id": sample_idx,
-            "calib": calib,
-        }
+            input_dict = {
+                "frame_id": sample_idx,
+                "calib": calib,
+            }
 
-        if "annos" in info:
-            annos = info["annos"]
-            annos = common_utils.drop_info_with_name(annos, name="DontCare")
-            loc, dims, rots = (
-                annos["location"],
-                annos["dimensions"],
-                annos["rotation_y"],
-            )
-            gt_names = annos["name"]
-            gt_boxes_camera = np.concatenate(
-                [loc, dims, rots[..., np.newaxis]], axis=1
-            ).astype(np.float32)
-            gt_boxes_lidar = box_utils.boxes3d_kitti_camera_to_lidar(
-                gt_boxes_camera, calib
-            )
+            if "annos" in info:
+                annos = info["annos"]
+                annos = common_utils.drop_info_with_name(annos, name="DontCare")
+                loc, dims, rots = (
+                    annos["location"],
+                    annos["dimensions"],
+                    annos["rotation_y"],
+                )
 
-            input_dict.update({"gt_names": gt_names, "gt_boxes": gt_boxes_lidar})
-            if "gt_boxes2d" in get_item_list:
-                input_dict["gt_boxes2d"] = annos["bbox"]
+                gt_names = annos["name"]
+                gt_boxes_camera = np.concatenate(
+                    [loc, dims, rots[..., np.newaxis]], axis=1
+                ).astype(np.float32)
+                gt_boxes_lidar = box_utils.boxes3d_kitti_camera_to_lidar(
+                    gt_boxes_camera, calib
+                )
 
+                input_dict.update({"gt_names": gt_names, "gt_boxes": gt_boxes_lidar})
+                if "gt_boxes2d" in get_item_list:
+                    input_dict["gt_boxes2d"] = annos["bbox"]
             road_plane = self.get_road_plane(sample_idx)
             if road_plane is not None:
                 input_dict["road_plane"] = road_plane
 
-        if "points" in get_item_list:
-            points = self.get_lidar(sample_idx)
-            if self.dataset_cfg.FOV_POINTS_ONLY:
-                pts_rect = calib.lidar_to_rect(points[:, 0:3])
-                fov_flag = self.get_fov_flag(pts_rect, img_shape, calib)
-                points = points[fov_flag]
-            input_dict["points"] = points
+            if "points" in get_item_list:
+                # print(f'sample idx : {sample_idx}')
+                points = self.get_lidar(sample_idx)
+                if self.dataset_cfg.FOV_POINTS_ONLY:
+                    pts_rect = calib.lidar_to_rect(points[:, 0:3])
+                    fov_flag = self.get_fov_flag(pts_rect, img_shape, calib)
+                    points = points[fov_flag]
+                input_dict["points"] = points
 
-        if "images" in get_item_list:
-            input_dict["images"] = self.get_image(sample_idx)
+            if "images" in get_item_list:
+                input_dict["images"] = self.get_image(sample_idx)
 
-        if "depth_maps" in get_item_list:
-            input_dict["depth_maps"] = self.get_depth_map(sample_idx)
+            if "depth_maps" in get_item_list:
+                input_dict["depth_maps"] = self.get_depth_map(sample_idx)
 
-        if "calib_matricies" in get_item_list:
-            input_dict["trans_lidar_to_cam"], input_dict["trans_cam_to_img"] = (
-                kitti_utils.calib_to_matricies(calib)
-            )
+            if "calib_matricies" in get_item_list:
+                (
+                    input_dict["trans_lidar_to_cam"],
+                    input_dict["trans_cam_to_img"],
+                ) = kitti_utils.calib_to_matricies(calib)
 
-        input_dict["calib"] = calib
-        data_dict = self.prepare_data(data_dict=input_dict)
+            input_dict["calib"] = calib
+            data_dict = self.prepare_data(data_dict=input_dict)
 
-        data_dict["image_shape"] = img_shape
+            data_dict["image_shape"] = img_shape
+        else:
+            info_1 = copy.deepcopy(self.kitti_infos[index])
+            idx2 = np.random.randint(len(self.kitti_infos))
+            info_2 = copy.deepcopy(self.kitti_infos[idx2])
+
+            sample_idx_1 = info_1["point_cloud"]["lidar_idx"]
+            sample_idx_2 = info_2["point_cloud"]["lidar_idx"]
+
+            img_shape_1 = info_1["image"]["image_shape"]
+            img_shape_2 = info_2["image"]["image_shape"]
+
+            calib_1 = self.get_calib(sample_idx_1)
+            calib_2 = self.get_calib(sample_idx_2)
+
+            get_item_list = self.dataset_cfg.get("GET_ITEM_LIST", ["points"])
+
+            input_dict_1 = {
+                "frame_id": sample_idx_1,
+                "calib": calib_1,
+            }
+            input_dict_2 = {
+                "frame_id": sample_idx_2,
+                "calib": calib_2,
+            }
+
+            if "annos" in info_1:
+                annos = info_1["annos"]
+                annos = common_utils.drop_info_with_name(annos, name="DontCare")
+                loc, dims, rots = (
+                    annos["location"],
+                    annos["dimensions"],
+                    annos["rotation_y"],
+                )
+
+                gt_names = annos["name"]
+                gt_boxes_camera = np.concatenate(
+                    [loc, dims, rots[..., np.newaxis]], axis=1
+                ).astype(np.float32)
+                gt_boxes_lidar = box_utils.boxes3d_kitti_camera_to_lidar(
+                    gt_boxes_camera, calib_1
+                )
+
+                input_dict_1.update({"gt_names": gt_names, "gt_boxes": gt_boxes_lidar})
+                if "gt_boxes2d" in get_item_list:
+                    input_dict_1["gt_boxes2d"] = annos["bbox"]
+
+            road_plane = self.get_road_plane(sample_idx_1)
+            if road_plane is not None:
+                input_dict_1["road_plane"] = road_plane
+
+            if "annos" in info_2:
+                annos = info_2["annos"]
+                annos = common_utils.drop_info_with_name(annos, name="DontCare")
+                loc, dims, rots = (
+                    annos["location"],
+                    annos["dimensions"],
+                    annos["rotation_y"],
+                )
+                for k in range(annos["name"].shape[0]):
+                    annos["name"][k] = (
+                        self.dataset_cfg.MAP_KITTI_TO_CLASS[annos["name"][k]]
+                        if annos["name"][k]
+                        in self.dataset_cfg.MAP_KITTI_TO_CLASS.keys()
+                        else annos["name"][k]
+                    )
+
+                gt_names = annos["name"]
+                gt_boxes_camera = np.concatenate(
+                    [loc, dims, rots[..., np.newaxis]], axis=1
+                ).astype(np.float32)
+                gt_boxes_lidar = box_utils.boxes3d_kitti_camera_to_lidar(
+                    gt_boxes_camera, calib_2
+                )
+
+                input_dict_2.update({"gt_names": gt_names, "gt_boxes": gt_boxes_lidar})
+                if "gt_boxes2d" in get_item_list:
+                    input_dict_2["gt_boxes2d"] = annos["bbox"]
+
+            road_plane = self.get_road_plane(sample_idx_2)
+            if road_plane is not None:
+                input_dict_2["road_plane"] = road_plane
+
+            #####
+
+            if "points" in get_item_list:
+                # print(f'sample idx : {sample_idx}')
+                points_1 = self.get_lidar(sample_idx_1)
+                if self.dataset_cfg.FOV_POINTS_ONLY:
+                    pts_rect = calib_1.lidar_to_rect(points_1[:, 0:3])
+                    fov_flag = self.get_fov_flag(pts_rect, img_shape, calib_1)
+                    points_1 = points_1[fov_flag]
+                input_dict_1["points"] = points_1
+
+                points_2 = self.get_lidar(sample_idx_2)
+                if self.dataset_cfg.FOV_POINTS_ONLY:
+                    pts_rect = calib_2.lidar_to_rect(points_2[:, 0:3])
+                    fov_flag = self.get_fov_flag(pts_rect, img_shape, calib_2)
+                    points_2 = points_2[fov_flag]
+                input_dict_2["points"] = points_2
+
+            if "images" in get_item_list:
+                input_dict_1["images"] = self.get_image(sample_idx_1)
+                input_dict_2["images"] = self.get_image(sample_idx_2)
+
+            if "depth_maps" in get_item_list:
+                input_dict_1["depth_maps"] = self.get_depth_map(sample_idx_1)
+                input_dict_2["depth_maps"] = self.get_depth_map(sample_idx_2)
+
+            if "calib_matricies" in get_item_list:
+                (
+                    input_dict_1["trans_lidar_to_cam"],
+                    input_dict_1["trans_cam_to_img"],
+                ) = kitti_utils.calib_to_matricies(calib_1)
+                (
+                    input_dict_2["trans_lidar_to_cam"],
+                    input_dict_2["trans_cam_to_img"],
+                ) = kitti_utils.calib_to_matricies(calib_2)
+
+            input_dict_1["calib"] = calib_1
+            input_dict_2["calib"] = calib_2
+            # data_dict = self.prepare_data(data_dict=input_dict)
+            # data_dict['image_shape'] = img_shape
+
+            if len(self.dataset_cfg.DATA_AUGMENTOR.MIX.NAME_LIST) == 1:
+                if self.dataset_cfg.DATA_AUGMENTOR.MIX.NAME_LIST[0] == "mix_up":
+                    data_dict = self.prepare_mixup_data(input_dict_1, input_dict_2)
+
+                if self.dataset_cfg.DATA_AUGMENTOR.MIX.NAME_LIST[0] == "cut_mix":
+                    data_dict = self.prepare_cutmix_data(input_dict_1, input_dict_2)
+            else:
+                index = np.random.randint(
+                    len(self.dataset_cfg.DATA_AUGMENTOR.MIX.NAME_LIST)
+                )
+                if self.dataset_cfg.DATA_AUGMENTOR.MIX.NAME_LIST[index] == "mix_up":
+                    data_dict = self.prepare_mixup_data(input_dict_1, input_dict_2)
+
+                if self.dataset_cfg.DATA_AUGMENTOR.MIX.NAME_LIST[index] == "cut_mix":
+                    data_dict = self.prepare_cutmix_data(input_dict_1, input_dict_2)
+
         return data_dict
 
 

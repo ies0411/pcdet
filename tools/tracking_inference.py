@@ -152,14 +152,12 @@ class TrackerDataset(DatasetTemplate):
         self.num_file_list = []
         self.lidar_files = []
         for dir_path in path_list:
-            #  self.tracking_seqs
             files = os.listdir(os.path.join(args.data_path, dir_path))
             files = natsort.natsorted(files)
             self.num_file_list.append(len(files))
             for file in files:
                 self.lidar_files.append(os.path.join(self.root_path, dir_path, file))
         self.total_num = len(self.lidar_files)
-        # print(self.lidar_files)
 
     def __len__(self):
         return self.total_num
@@ -226,7 +224,6 @@ def _detection_postprocessing(pred_dicts, num_objects):
         label = str(pred_dicts[0]["pred_labels"][idx].item())
         pred_bbox = pred_bbox.tolist()
         pred_bbox.append(pred_dicts[0]["pred_scores"][idx].tolist())
-        # pred_bbox.append(0.7)
         tracking_info_data[label].append(pred_bbox)
     return tracking_info_data
 
@@ -248,7 +245,6 @@ def main():
         args=args,
     )
     logger.info(f"Total number of samples: \t{len(tracking_dataset)}")
-    # dataloader = DataLoader(tracking_dataset, batch_size=1, shuffle=False)
 
     model = build_network(
         model_cfg=detection_cfg.MODEL,
@@ -264,12 +260,10 @@ def main():
     for class_name in detection_cfg.CLASS_NAMES:
         ID_start_dict.setdefault(class_name, 1)
     logger.info(f"ID_start_dict : {ID_start_dict}")
-    # id_max = {}
     tracking_results_dict = {}
     tracker_dict = {}
     for class_name in detection_cfg.CLASS_NAMES:
         tracker_dict[class_name] = Spb3DMOT(ID_init=ID_start_dict.get(class_name))
-        # id_max[class_name] = 0
     for idx in range(len(detection_cfg.CLASS_NAMES)):
         tracking_results_dict.setdefault(str(int(idx) + 1), {})
     for class_name in detection_cfg.CLASS_NAMES:
@@ -290,7 +284,6 @@ def main():
                     tracker_dict[class_name] = Spb3DMOT(
                         ID_init=ID_start_dict.get(class_name)
                     )
-                    # id_max[class_name] = 0
 
                 scene = str(int(data_dict["scene"])).zfill(4)
 
@@ -315,15 +308,7 @@ def main():
                 tracker = tracker_dict[detection_cfg.CLASS_NAMES[int(label) - 1]]
                 tracking_result, _ = tracker.track(pred_bboxes)
                 tracking_result = tracking_result[0].tolist()
-                # print(f"tracking_result : {tracking_result}")
-                # if len(tracking_result) != 0:
-                # id_max[detection_cfg.CLASS_NAMES[int(label) - 1]] = max(
-                #     id_max[detection_cfg.CLASS_NAMES[int(label) - 1]],
-                #     tracking_result[0][-1],
-                # )
-                # ID_start_dict[detection_cfg.CLASS_NAMES[int(label) - 1]] = (
-                #     id_max[detection_cfg.CLASS_NAMES[int(label) - 1]] + 1
-                # )
+
                 tracking_results_dict[label].setdefault(frame_idx, [])
                 tracking_results_dict[label][frame_idx].append(tracking_result)
                 P2, V2C = read_calib(os.path.join(args.calib_dir, f"{scene}.txt"))
@@ -331,8 +316,6 @@ def main():
                 if len(tracking_result) == 0:
                     continue
                 tracking_results = tracking_result
-                # print(f"tracking_result : {tracking_result}")
-                # tracking_result = tracking_result[0]
 
                 for tracking_result in tracking_results:
                     save_path = os.path.join(
@@ -369,41 +352,6 @@ def main():
 
     logger.info(f"tracking time : { time.time()-tracking_time}")
     logger.info("=========Tracking Finish =========")
-
-    # eval
-    # if args.eval is True:
-    #     copy_files(args.tracking_output_dir, args.eval_dir)
-
-    #     logger.info("=========Eval Start=========")
-    #     result_sha = "sha_key"
-    #     mail = mailpy.Mail("")
-    #     success = evaluate(result_sha, mail)
-    #     mail.finalize(success, "tracking", result_sha, "")
-
-    # logger.info("========= logging.. =========")
-
-    ########
-    # frame_idx = 0  # TODO : change to frame_id
-    # P2, V2C = read_calib(os.path.join(args.calib_dir, f"{str(frame_idx).zfill(4)}.txt"))
-    # for class_name, racking_results_list in tracking_results_dict.items():
-    #     with open(
-    #         os.path.join(args.tracking_output_dir, f"result_{class_name}.txt"), "w"
-    #     ) as f:
-    #         for frame_idx, tracking_results in racking_results_list.items():
-    #             tracking_results = tracking_results[0]
-    #             if len(tracking_results) == 0:
-    #                 continue
-    #             for tracking_result in tracking_results:
-    #                 box = copy.deepcopy(tracking_result)
-    #                 box[:3] = tracking_result[3:6]
-    #                 box[3:6] = tracking_result[:3]
-    #                 box[2] -= box[5] / 2
-    #                 box[6] = -box[6] - np.pi / 2
-    #                 box[:3] = vel_to_cam_pose(box[:3], V2C)[:3]
-    #                 box2d = bb3d_2_bb2d(box, P2)
-    #                 f.write(
-    #                     f"{str(frame_idx)} {str(int(tracking_result[-1]))} {detection_cfg.CLASS_NAMES[int(class_name) - 1]} -1 -1 -10 {box2d[0][0]} {box2d[0][1]} {box2d[0][2]} {box2d[0][3]} {str(box[3])} {str(box[4])} {str(box[5])} {str(box[0])} {str(box[1])} {str(box[2])} {str(box[6])} \n"
-    #                 )
 
 
 # https://github.com/pratikac/kitti/blob/master/readme.tracking.txt

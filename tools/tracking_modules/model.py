@@ -67,7 +67,7 @@ class Spb3DMOT(object):
         self.ID_count = [ID_init]
         self.ID_MAP = OrderedDict()
         self.real_ID = ID_init
-        self.alpha = 0.0
+        self.alpha = 0.25
         self.id_now_output = []
 
         # config

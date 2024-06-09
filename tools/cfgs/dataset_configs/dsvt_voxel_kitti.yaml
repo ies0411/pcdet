@@ -29,7 +29,7 @@ DATA_AUGMENTOR:
         NAME_LIST:  ['mix_up','cut_mix']
         COLLISION_DETECTION: True
         ALPHA: 2
-        PROB: 0.3
+        PROB: 0.2
 
     AUG_CONFIG_LIST:
         - NAME: gt_sampling
