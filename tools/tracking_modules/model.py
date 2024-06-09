@@ -27,15 +27,6 @@ def _within_range(theta):
     return theta
 
 
-# def within_range(self, theta):
-# 	# make sure the orientation is within a proper range
-
-# 	if theta >= np.pi: theta -= np.pi * 2    # make the theta still in the range
-# 	if theta < -np.pi: theta += np.pi * 2
-
-# 	return theta
-
-
 @jit(nopython=True, cache=True)
 def _select_giou_thres(bbox_a, bbox_b):
     # TODO : jit, set by delta T
@@ -45,7 +36,6 @@ def _select_giou_thres(bbox_a, bbox_b):
         else ((bbox_a[3] * bbox_a[4] * bbox_a[5]) + (bbox_b[3] * bbox_b[4] * bbox_b[5]))
         / 2.0
     )
-    # print(volume_size)
 
     if volume_size > 15:
         return -1.0
@@ -77,7 +67,7 @@ class Spb3DMOT(object):
         self.ID_count = [ID_init]
         self.ID_MAP = OrderedDict()
         self.real_ID = ID_init
-        self.alpha = 0.25
+        self.alpha = 0.0
         self.id_now_output = []
 
         # config

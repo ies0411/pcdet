@@ -40,9 +40,10 @@ def parse_config():
     parser.add_argument(
         "--cfg_file",
         type=str,
-        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det/dsvt_voxel.yaml",
+        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_3/dsvt_voxel.yaml",
         help="specify the config for demo",
     )
+    # "/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_2/dsvt_voxel.yaml"
     # /mnt/nas2/users/eslim/tracking/detector_test2/dsvt_voxel.yaml
     # "./cfgs/kitti_models/pv_rcnn.yaml"
     # "./cfgs/kitti_models/dsvt_voxel.yaml"
@@ -51,17 +52,18 @@ def parse_config():
     parser.add_argument(
         "--data_path",
         type=str,
-        default="../sample/lidar",
+        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/",
         help="specify the point cloud data file or directory",
     )
     # ../sample/lidar
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det/ckpt/latest_model.pth",
+        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_3/ckpt/latest_model.pth",
         type=str,
         help="specify the pretrained model",
     )
+    # /mnt/nas2/users/eslim/tracking/dsvt_kitti_det/ckpt/latest_model.pth
     # "/mnt/nas2/users/eslim/tracking/pv_rcnn_8369.pth"
     # "/mnt/nas2/users/eslim/tracking/detector_test2/ckpt/latest_model.pth"
     # /mnt/nas2/users/eslim/tracking/w_aug/ckpt
@@ -91,7 +93,7 @@ def parse_config():
     # "/mnt/nas3/Data/kitti-processed/object_tracking/training/calib"
     parser.add_argument(
         "--calib_dir",
-        default="../sample/calib/",
+        default="/mnt/nas3/Data/kitti-processed/object_tracking/training/calib",
         type=str,
     )
 
@@ -118,6 +120,7 @@ class TrackerDataset(DatasetTemplate):
         self,
         dataset_cfg,
         class_names,
+        tracking_seqs,
         training=True,
         root_path=None,
         logger=None,
@@ -142,36 +145,30 @@ class TrackerDataset(DatasetTemplate):
         self.root_path = args.data_path
         self.ext = ext
         self.args = args
+        self.tracking_seqs = tracking_seqs
         path_list = os.listdir(args.data_path)
         path_list = natsort.natsorted(path_list)
+        path_list = [x for x in path_list if int(x) in self.tracking_seqs]
         self.num_file_list = []
         self.lidar_files = []
         for dir_path in path_list:
+            #  self.tracking_seqs
             files = os.listdir(os.path.join(args.data_path, dir_path))
             files = natsort.natsorted(files)
             self.num_file_list.append(len(files))
             for file in files:
                 self.lidar_files.append(os.path.join(self.root_path, dir_path, file))
         self.total_num = len(self.lidar_files)
+        # print(self.lidar_files)
 
     def __len__(self):
         return self.total_num
 
     def __getitem__(self, index):
-        reduced_index = 0
-        pre_index = 0
-        if self.total_num == index:
-            return None
-        for idx in range(len(self.num_file_list)):
-            reduced_index += self.num_file_list[idx]
-            if index < reduced_index:
-                frame_idx = idx
-                pre_index = self.num_file_list[idx - 1] if idx != 0 else pre_index
-                break
 
-        P2, V2C = read_calib(
-            os.path.join(self.args.calib_dir, f"{str(frame_idx).zfill(4)}.txt")
-        )
+        scene = self.lidar_files[index].split("/")[-2]
+        frame_idx = self.lidar_files[index].split("/")[-1].split(".")[0]
+        P2, V2C = read_calib(os.path.join(self.args.calib_dir, scene + ".txt"))
         if self.ext == ".bin":
 
             max_row = 374  # y
@@ -210,8 +207,8 @@ class TrackerDataset(DatasetTemplate):
             raise NotImplementedError
         input_dict = {
             "points": points,
-            "frame_id": index - pre_index,
-            "scene": frame_idx,
+            "frame_id": int(frame_idx),
+            "scene": int(scene),
         }
         data_dict = self.prepare_data(data_dict=input_dict)
         return data_dict
@@ -247,6 +244,7 @@ def main():
         root_path=None,
         ext=args.ext,
         logger=logger,
+        tracking_seqs=tracking_cfg.tracking_seqs,
         args=args,
     )
     logger.info(f"Total number of samples: \t{len(tracking_dataset)}")
@@ -278,7 +276,7 @@ def main():
         Path(os.path.join(args.tracking_output_dir, class_name)).mkdir(
             parents=True, exist_ok=True
         )
-    scene = str(0).zfill(4)
+    scene = str(9999).zfill(4)
     with torch.no_grad():
         for idx, data_dict in enumerate(tracking_dataset):
             if data_dict == None:

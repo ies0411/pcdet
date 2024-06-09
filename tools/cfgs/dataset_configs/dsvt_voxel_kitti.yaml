@@ -24,6 +24,13 @@ FOV_POINTS_ONLY: True
 
 DATA_AUGMENTOR:
     DISABLE_AUG_LIST: ['placeholder']
+    MIX:
+        # # 'mix_up','cut_mix'
+        NAME_LIST:  ['mix_up','cut_mix']
+        COLLISION_DETECTION: True
+        ALPHA: 2
+        PROB: 0.3
+
     AUG_CONFIG_LIST:
         - NAME: gt_sampling
           USE_ROAD_PLANE: True

@@ -27,6 +27,8 @@ tracking_results_path: '/home/eslim/workspace/Swift3DMOT/evaluation/trk_results'
 # trainval [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 # test [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
 tracking_seqs: [1,6,8,10,12,13,14,15,16,18,19]
+# tracking_seqs: [1,6,8,10,12,13,14,15,16,18,19]
+
 image_resolution: [1242,188]
 mns_threshold : 0.5
 tracking_type: "Car"
@@ -50,3 +52,15 @@ post_score: 0
 # -1: global tracking
 # 0.->500: online or near online tracking
 latency: 0
+
+# 0001 empty 000000 000447
+# 0006 empty 000000 000270
+# 0008 empty 000000 000390
+# 0010 empty 000000 000294
+# 0012 empty 000000 000078
+# 0013 empty 000000 000340
+# 0014 empty 000000 000106
+# 0015 empty 000000 000376
+# 0016 empty 000000 000209
+# 0018 empty 000000 000339
+# 0019 empty 000000 001059

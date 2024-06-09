@@ -34,8 +34,8 @@ def iou(box_a, box_b):
 def nms(
     original_boxes,
     iou_thres_same_class=1.0,  # 0.2
-    low_thres=0.3,
-    birth_thres=0.55,
+    low_thres=0.1,
+    birth_thres=0.5,
     # iou_thres_different_class=0.6,
 ):
     filtered_list = []
@@ -64,13 +64,12 @@ def nms(
             bbox_list = bbox.tolist()
             bbox_list.append(birth_thres)
             selected_boxes.append(bbox_list)
-            for idx_2, other_box in enumerate(boxes_probability_sorted):
-                if (
-                    iou(bbox[:-1], other_box[:-1]) > iou_thres_same_class
-                    and idx != idx_2
-                ):
-                    other_box[-1] = 0
-    # print(f"selected_boxes : {selected_boxes}")
+            # for idx_2, other_box in enumerate(boxes_probability_sorted):
+            #     if (
+            #         iou(bbox[:-1], other_box[:-1]) > iou_thres_same_class
+            #         and idx != idx_2
+            #     ):
+            #         other_box[-1] = 0
     return selected_boxes
 
 

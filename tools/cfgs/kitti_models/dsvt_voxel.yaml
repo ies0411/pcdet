@@ -91,7 +91,9 @@ MODEL:
             }
 
         POST_PROCESSING:
+            # SCORE_THRESH: 0.01
             SCORE_THRESH: 0.01
+
             POST_CENTER_LIMIT_RANGE: [ -75.2, -75.2, -2, 75.2, 75.2, 4 ]
             # SCORE_THRESH: 0.1
             # POST_CENTER_LIMIT_RANGE: [0, -40, -3, 70.4, 40, 1]
@@ -102,7 +104,7 @@ MODEL:
             MAX_OBJ_PER_SAMPLE: 500
             NMS_CONFIG:
                 NMS_TYPE: nms_gpu
-                NMS_THRESH: 0.3
+                NMS_THRESH: 0.3 #TODO  check
                 NMS_PRE_MAXSIZE: 4096
                 NMS_POST_MAXSIZE: 500
             # USE_IOU_TO_RECTIFY_SCORE: True
@@ -136,7 +138,7 @@ OPTIMIZATION:
     NUM_EPOCHS: 20
 
     OPTIMIZER: adam_onecycle
-    LR: 0.0007 #
+    LR: 0.0001 #0.0007
     WEIGHT_DECAY: 0.0001
     MOMENTUM: 0.09
 
@@ -147,8 +149,10 @@ OPTIMIZATION:
     LR_DECAY: 0.1
     LR_CLIP: 0.0000001
 
-    LR_WARMUP: False
-    WARMUP_EPOCH: 1
+    LR_WARMUP: True
+    WARMUP_EPOCH: 5
+    #     LR_WARMUP: False
+    # WARMUP_EPOCH: 1
 
     GRAD_NORM_CLIP: 10
     LOSS_SCALE_FP16: 32.0
