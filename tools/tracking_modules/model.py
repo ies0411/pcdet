@@ -102,15 +102,7 @@ class Spb3DMOT(object):
             # max_age,
             # min_hits,
         )
-
-        # define max/min values for the output affinity matrix
-        # if self.metric in ["dist_3d", "dist_2d", "m_dis"]:
-        #     self.max_sim, self.min_sim = 0.0, -100.0
-        # elif self.metric in ["iou_2d", "iou_3d"]:
-        #     self.max_sim, self.min_sim = 1.0, 0.0
-        # elif self.metric in ["giou_2d", "giou_3d"]:
         self.max_sim, self.min_sim = 1.0, -1.0
-        # self.max_sim, self.min_sim = 2.0, -2.0
 
     def process_dets(self, dets):
         # convert each detection into the class Box3D
@@ -179,9 +171,7 @@ class Spb3DMOT(object):
                 assert len(d) == 1, "error"
 
                 # update statistics
-                # trk.time_since_update = 0  # reset because just updated
                 # trk.confidence = max(trk.confidence, dets[d[0]].s)
-                # trk.confidence = (trk.confidence + dets[d[0]].s) * 0.5
 
                 trk.confidence = (self.alpha) * trk.confidence + (
                     1 - self.alpha
@@ -189,27 +179,12 @@ class Spb3DMOT(object):
                 # self.ukf.R[:, :] = 0.00001 * (1 - self.confidence)
                 # trk.ukf.R[:, :] *= np.clip(0.001 * (1 - trk.confidence), 0.00001, 0.001)
 
-                # trk.confidence = dets[d[0]].s
-                # print(dets[d[0]])
                 # trk.confidence = (
                 #     dets[d[0]].s
                 #     if trk.threshold <= dets[d[0]].s
                 #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
                 # )
-                # trk.confidence = (
-                #     dets[d[0]].s
-                #     if trk.threshold <= dets[d[0]].s
-                #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
-                # )
-
-                # trk.confidence = dets[d[0]].s
-                # if dets[d[0]].s < 0.2:
-                # print(dets[d[0]].s)
-                # (
-                #     dets[d[0]].s
-                #     if trk.threshold <= dets[d[0]].s
-                #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
-                # )
+                # TODO : if score > thres, else -> split
 
                 # trk.confidence = dets[d[0]].s
                 trk.hits = True
@@ -228,7 +203,6 @@ class Spb3DMOT(object):
                 trk.ukf.x[3] = _within_range(trk.ukf.x[3])
             else:
                 trk.confidence -= trk.distance
-                # trk.confidence -= 0.1
                 trk.hits = False
 
     def birth(self, dets, unmatched_dets):
