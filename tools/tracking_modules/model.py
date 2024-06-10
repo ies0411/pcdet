@@ -155,7 +155,7 @@ class Spb3DMOT(object):
             kf_tmp.ukf.predict()
             kf_tmp.ukf.x[3] = _within_range(kf_tmp.ukf.x[3])
             # update statistics
-            kf_tmp.time_since_update += 1
+            # kf_tmp.time_since_update += 1
             trk_tmp = kf_tmp.ukf.x.reshape((-1))[:7]
             trks.append(Box3D.array2bbox(trk_tmp))
 
@@ -176,6 +176,8 @@ class Spb3DMOT(object):
                 trk.confidence = (self.alpha) * trk.confidence + (
                     1 - self.alpha
                 ) * dets[d[0]].s
+                # TODO : if score > thres, else -> split
+
                 # self.ukf.R[:, :] = 0.00001 * (1 - self.confidence)
                 # trk.ukf.R[:, :] *= np.clip(0.001 * (1 - trk.confidence), 0.00001, 0.001)
 
@@ -184,7 +186,6 @@ class Spb3DMOT(object):
                 #     if trk.threshold <= dets[d[0]].s
                 #     else (1 - self.alpha) * trk.confidence + self.alpha * dets[d[0]].s
                 # )
-                # TODO : if score > thres, else -> split
 
                 # trk.confidence = dets[d[0]].s
                 trk.hits = True
@@ -194,7 +195,7 @@ class Spb3DMOT(object):
                 trk.ukf.x[3], bbox3d[3] = self.orientation_correction(
                     trk.ukf.x[3], bbox3d[3]
                 )
-                trk.ukf.R[0:, 0:] *= np.clip(0.05 * (1 - trk.confidence), 0.001, 0.1)
+                # trk.ukf.R[0:, 0:] *= np.clip(0.05 * (1 - trk.confidence), 0.001, 0.1)
 
                 # kalman filter update with observation
                 trk.ukf.update(bbox3d[:-2])
