@@ -40,7 +40,7 @@ def parse_config():
     parser.add_argument(
         "--cfg_file",
         type=str,
-        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_3/dsvt_voxel.yaml",
+        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_5_mix/dsvt_voxel.yaml",
         help="specify the config for demo",
     )
     # "/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_2/dsvt_voxel.yaml"
@@ -59,7 +59,7 @@ def parse_config():
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_3/ckpt/latest_model.pth",
+        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_5_mix/ckpt/checkpoint_epoch_14.pth",
         type=str,
         help="specify the pretrained model",
     )

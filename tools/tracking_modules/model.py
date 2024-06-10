@@ -56,6 +56,7 @@ def _select_giou_thres(bbox_a, bbox_b):
     #     return -0.2
     # else:
     #     return -0.4
+    # TODO : follow dt and size, prove as CARLA
 
 
 # TODO : adaptive filter
@@ -77,29 +78,29 @@ class Spb3DMOT(object):
         self.algm = None
         self.metric = None
         self.thres = None
-        self.max_age = None
-        self.min_hits = None
+        # self.max_age = None
+        # self.min_hits = None
         # debug
         self.debug_id = None
         self.death_threshold = 0.0
 
     def get_param(  # "greedy"
         self,
+        thres,
         algm="hungar",
         metric="eiou",
-        thres=-1.0,
-        min_hits=1,
-        max_age=2,
+        # min_hits=1,
+        # max_age=2,
     ):
         # if metric in ["dist_3d", "dist_2d", "m_dis"]:
         #     thres *= -1
 
-        self.algm, self.metric, self.thres, self.max_age, self.min_hits = (
+        self.algm, self.metric, self.thres = (
             algm,
             metric,
             thres,
-            max_age,
-            min_hits,
+            # max_age,
+            # min_hits,
         )
 
         # define max/min values for the output affinity matrix

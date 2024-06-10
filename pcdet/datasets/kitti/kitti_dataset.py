@@ -1837,9 +1837,7 @@ class KittiDataset(DatasetTemplate):
             1
         ) > self.dataset_cfg.DATA_AUGMENTOR.MIX.get("PROB", 0):
             info = copy.deepcopy(self.kitti_infos[index])
-
             sample_idx = info["point_cloud"]["lidar_idx"]
-
             img_shape = info["image"]["image_shape"]
             calib = self.get_calib(sample_idx)
             get_item_list = self.dataset_cfg.get("GET_ITEM_LIST", ["points"])
@@ -1956,13 +1954,6 @@ class KittiDataset(DatasetTemplate):
                     annos["dimensions"],
                     annos["rotation_y"],
                 )
-                for k in range(annos["name"].shape[0]):
-                    annos["name"][k] = (
-                        self.dataset_cfg.MAP_KITTI_TO_CLASS[annos["name"][k]]
-                        if annos["name"][k]
-                        in self.dataset_cfg.MAP_KITTI_TO_CLASS.keys()
-                        else annos["name"][k]
-                    )
 
                 gt_names = annos["name"]
                 gt_boxes_camera = np.concatenate(
@@ -1987,14 +1978,14 @@ class KittiDataset(DatasetTemplate):
                 points_1 = self.get_lidar(sample_idx_1)
                 if self.dataset_cfg.FOV_POINTS_ONLY:
                     pts_rect = calib_1.lidar_to_rect(points_1[:, 0:3])
-                    fov_flag = self.get_fov_flag(pts_rect, img_shape, calib_1)
+                    fov_flag = self.get_fov_flag(pts_rect, img_shape_1, calib_1)
                     points_1 = points_1[fov_flag]
                 input_dict_1["points"] = points_1
 
                 points_2 = self.get_lidar(sample_idx_2)
                 if self.dataset_cfg.FOV_POINTS_ONLY:
                     pts_rect = calib_2.lidar_to_rect(points_2[:, 0:3])
-                    fov_flag = self.get_fov_flag(pts_rect, img_shape, calib_2)
+                    fov_flag = self.get_fov_flag(pts_rect, img_shape_2, calib_2)
                     points_2 = points_2[fov_flag]
                 input_dict_2["points"] = points_2
 
