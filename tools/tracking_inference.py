@@ -59,7 +59,7 @@ def parse_config():
     # /mnt/nas3/Data/kitti-processed/object_tracking/training/velodyne/
     parser.add_argument(
         "--ckpt",
-        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_6_mix/ckpt/checkpoint_epoch_39.pth",
+        default="/mnt/nas2/users/eslim/tracking/dsvt_kitti_det_6_mix/ckpt/latest_model.pth",
         type=str,
         help="specify the pretrained model",
     )
