@@ -573,9 +573,11 @@ class DSVTInputLayer(nn.Module):
 
         for stage_id in range(self.stage_num):
             # window partition of corrsponding stage-map
-            voxel_info = self.window_partition(voxel_info, stage_id)
+            voxel_info = self.window_partition(voxel_info, stage_id)  # window 좌표
             # generate set id of corrsponding stage-map
-            voxel_info = self.get_set(voxel_info, stage_id)
+            voxel_info = self.get_set(
+                voxel_info, stage_id
+            )  # 복셀을 윈도우 단위로 나눔, partition,
             for block_id in range(self.set_info[stage_id][1]):
                 for shift_id in range(self.num_shifts[stage_id]):
                     voxel_info[

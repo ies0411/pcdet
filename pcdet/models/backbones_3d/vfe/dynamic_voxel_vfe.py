@@ -162,7 +162,7 @@ class DynamicVoxelVFE(VFETemplate):
         voxel_size,
         grid_size,
         point_cloud_range,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(model_cfg=model_cfg)
 
@@ -176,7 +176,6 @@ class DynamicVoxelVFE(VFETemplate):
         self.num_filters = self.model_cfg.NUM_FILTERS
         assert len(self.num_filters) > 0
         num_filters = [num_point_features] + list(self.num_filters)
-
         pfn_layers = []
         for i in range(len(num_filters) - 1):
             in_filters = num_filters[i]
@@ -211,33 +210,36 @@ class DynamicVoxelVFE(VFETemplate):
 
     def forward(self, batch_dict, **kwargs):
         points = batch_dict["points"]  # (batch_idx, x, y, z, i, e)
-
         points_coords = torch.floor(
             (points[:, [1, 2, 3]] - self.point_cloud_range[[0, 1, 2]])
             / self.voxel_size[[0, 1, 2]]
-        ).int()
+        ).int()  # 어느 복셀에 위치해 있는지 indexing하는 코드
         mask = ((points_coords >= 0) & (points_coords < self.grid_size[[0, 1, 2]])).all(
             dim=1
-        )
+        )  # pointcloud range에 포함이 안되는지 확인하는 코드
         points = points[mask]
         points_coords = points_coords[mask]
-        points_xyz = points[:, [1, 2, 3]].contiguous()
-
-        merge_coords = (
+        points_xyz = points[:, [1, 2, 3]].contiguous()  # range에 포함된 point들의 좌표
+        merge_coords = (  # index merge하는 코드, points coords를 효율적으로 index관리하기위해 한차원으로 줄여서 merge
             points[:, 0].int() * self.scale_xyz
             + points_coords[:, 0] * self.scale_yz
             + points_coords[:, 1] * self.scale_z
             + points_coords[:, 2]
         )
-
         unq_coords, unq_inv, unq_cnt = torch.unique(
             merge_coords, return_inverse=True, return_counts=True, dim=0
-        )
+        )  # merge_coord에서 unique좌표반환, unq_coords는 좌표값, unq_inv는 index, 즉 non empty의 voxel index를 중복없이 뽑음 :unq_coords, unq_inv는 각 점이 속하는 cluster 라벨
 
-        points_mean = torch_scatter.scatter_mean(points_xyz, unq_inv, dim=0)
-        f_cluster = points_xyz - points_mean[unq_inv, :]
+        points_mean = torch_scatter.scatter_mean(
+            points_xyz, unq_inv, dim=0
+        )  # 같은 cluster(voxel)끼리의 좌표값들의 평균 반환 - nonempty voxel만 해당
+
+        f_cluster = (
+            points_xyz - points_mean[unq_inv, :]
+        )  # point가 해당 voxel의 중점에서 떨어져있는 정도, 상대위치
 
         f_center = torch.zeros_like(points_xyz)
+        # 각 points에서 복셀 중심의 좌표를 뺌, 중심과 떨어져 있는 정도
         f_center[:, 0] = points_xyz[:, 0] - (
             points_coords[:, 0].to(points_xyz.dtype) * self.voxel_x + self.x_offset
         )
@@ -248,7 +250,7 @@ class DynamicVoxelVFE(VFETemplate):
         f_center[:, 2] = points_xyz[:, 2] - (
             points_coords[:, 2].to(points_xyz.dtype) * self.voxel_z + self.z_offset
         )
-
+        # f_cluster : voxel의 mean과 떨어져있는 정도, f_center : voxel의 중심과 떨어져 있는 정도
         if self.use_absolute_xyz:
             features = [points[:, 1:], f_cluster, f_center]
         else:
@@ -258,11 +260,13 @@ class DynamicVoxelVFE(VFETemplate):
             points_dist = torch.norm(points[:, 1:4], 2, dim=1, keepdim=True)
             features.append(points_dist)
         features = torch.cat(features, dim=-1)
-
+        # features :  x,y,z,mean 상대위치, 중심 상대위치
         for pfn in self.pfn_layers:
             features = pfn(features, unq_inv)
+        # pfn : mlp태우고 scatter max 실행 ; 해당 복셀(cluster)에서 max값만 뽑음
 
         # generate voxel coordinates
+        # 원래 좌표(points_coords)로 non-empty voxel의 coordinate 복원
         unq_coords = unq_coords.int()
         voxel_coords = torch.stack(
             (
@@ -273,8 +277,13 @@ class DynamicVoxelVFE(VFETemplate):
             ),
             dim=1,
         )
-        voxel_coords = voxel_coords[:, [0, 3, 2, 1]]
+        voxel_coords = voxel_coords[:, [0, 3, 2, 1]]  # [batch_index, z, y, x]로 복원
 
         batch_dict["pillar_features"] = batch_dict["voxel_features"] = features
         batch_dict["voxel_coords"] = voxel_coords
         return batch_dict
+
+
+# transform_points_to_voxels :voxel_generator사용, spconv에서 voxelization하는 operator
+# transform_points_to_voxels_placeholder : voxel_generator사용안하고 scatter사용
+# https://chatgpt.com/share/a5a831ad-f492-4f4b-a78d-1d79034157da

@@ -116,7 +116,7 @@ class Box3D:
     @classmethod
     def bbox2array(cls, bbox):
         if bbox.s is None:
-            return np.array([bbox.x, bbox.y, bbox.z, bbox.ry, bbox.l, bbox.w, bbox.h])
+            return np.array([bbox.x, bbox.y, bbox.z, bbox.ry, bbox.h, bbox.w, bbox.l])
         else:
             return np.array(
                 [
@@ -124,9 +124,9 @@ class Box3D:
                     bbox.y,
                     bbox.z,
                     bbox.ry,
-                    bbox.l,
-                    bbox.w,
                     bbox.h,
+                    bbox.w,
+                    bbox.l,
                     bbox.s,
                     bbox.thres,
                 ]
@@ -154,7 +154,8 @@ class Box3D:
     @classmethod
     def pcdet2bbox_raw(cls, data):
         # take the format of data of [h,w,l,x,y,z,theta]
-
+        #  l, w, h, -> x,y,z
+        # l ->x, h->y,z->w
         bbox = Box3D()
         bbox.x, bbox.y, bbox.z, bbox.h, bbox.w, bbox.l, bbox.ry = data[:7]
         if len(data) == 8:
@@ -169,7 +170,17 @@ class Box3D:
         # take the format of data of [x,y,z,theta,l,w,h]
 
         bbox = Box3D()
-        bbox.x, bbox.y, bbox.z, bbox.ry, bbox.l, bbox.w, bbox.h = data[:7]
+        # x, y, z, theta, l, w, h,
+        # bbox.h, bbox.w, bbox.l,
+        (
+            bbox.x,
+            bbox.y,
+            bbox.z,
+            bbox.ry,
+            bbox.h,
+            bbox.w,
+            bbox.l,
+        ) = data[:7]
         if len(data) == 8:
             bbox.s = data[-1]
         return bbox

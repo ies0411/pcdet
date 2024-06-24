@@ -207,15 +207,15 @@ class Spb3DMOT(object):
                 trk.hits = False
 
     def birth(self, dets, unmatched_dets):
-        new_id_list = []  # new ID generated for unmatched detections
+        # new_id_list = []  # new ID generated for unmatched detections
         for i in unmatched_dets:  # a scalar of index
             # trk = KF(Box3D.bbox2array(dets[i]), self.ID_count[0])
             trk = UKF(Box3D.bbox2array(dets[i]), self.ID_count[0])
             self.trackers.append(trk)
-            new_id_list.append(trk.id)
+            # new_id_list.append(trk.id)
             self.ID_count[0] += 1
 
-        return new_id_list
+        # return new_id_list
 
     # TODO : ukf speed
     def output(self):
@@ -360,7 +360,7 @@ class Spb3DMOT(object):
         self.update(matched, unmatched_trks, dets)
 
         # create and initialise new trackers for unmatched detections
-        new_id_list = self.birth(dets, unmatched_dets)
+        self.birth(dets, unmatched_dets)
         # output existing valid tracks
         results = self.output()
         if len(results) > 0:
