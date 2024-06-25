@@ -36,7 +36,9 @@ class DSVT(nn.Module):
         super().__init__()
 
         self.model_cfg = model_cfg
-        self.input_layer = DSVTInputLayer(self.model_cfg.INPUT_LAYER)
+        self.input_layer = DSVTInputLayer(
+            self.model_cfg.INPUT_LAYER
+        )  # make set in window
         block_name = self.model_cfg.block_name
         set_info = self.model_cfg.set_info
         d_model = self.model_cfg.d_model
@@ -172,13 +174,15 @@ class DSVT(nn.Module):
 
         output = voxel_feat
         block_id = 0
-        for stage_id in range(self.stage_num):
+        for stage_id in range(self.stage_num):  # baseline - 4 block
             block_layers = self.__getattr__(f"stage_{stage_id}")
             residual_norm_layers = self.__getattr__(f"residual_norm_stage_{stage_id}")
-            for i in range(len(block_layers)):
+            for i in range(
+                len(block_layers)
+            ):  # nn.ModuleList(block_list) , _get_block_module  (DSVTBlock)
                 block = block_layers[i]
                 residual = output.clone()
-                if self.use_torch_ckpt == False:
+                if self.use_torch_ckpt == False: # stage_num만큼 (voxel의 경우4번 )DSVTBlock수행 ->걍 attention한거(_get_block_module)
                     output = block(
                         output,
                         set_voxel_inds_list[stage_id],
@@ -197,6 +201,7 @@ class DSVT(nn.Module):
                     )
                 output = residual_norm_layers[i](output + residual)
                 block_id += 1
+
             if stage_id < self.stage_num - 1:
                 # pooling
                 prepool_features = pooling_preholder_feats[stage_id].type_as(output)
@@ -573,11 +578,13 @@ class DSVTInputLayer(nn.Module):
 
         for stage_id in range(self.stage_num):
             # window partition of corrsponding stage-map
-            voxel_info = self.window_partition(voxel_info, stage_id)  # window 좌표
+            voxel_info = self.window_partition(
+                voxel_info, stage_id
+            )  # window partition에서의 상대좌표를 추가(relative-coords inner window), batch_win_inds_stage{stage_id}_shift{i}
             # generate set id of corrsponding stage-map
             voxel_info = self.get_set(
                 voxel_info, stage_id
-            )  # 복셀을 윈도우 단위로 나눔, partition,
+            )  # window(basic and shift)내에서 set하는 부분  window-bounded and size-equivalent local sets
             for block_id in range(self.set_info[stage_id][1]):
                 for shift_id in range(self.num_shifts[stage_id]):
                     voxel_info[

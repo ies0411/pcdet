@@ -31,6 +31,7 @@ KITTI:
         #   COLLISION_DETECTION: True
         #   ALPHA: 2
         #   PROB: 0.3
+
         AUG_CONFIG_LIST:
             - NAME: random_beam_downsample
               BEAM: 32
